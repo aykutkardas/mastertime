@@ -1,0 +1,2 @@
+# mastertime
+Timer management library.
