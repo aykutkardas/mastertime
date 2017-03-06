@@ -37,15 +37,6 @@ MT.collect = function (index) {
     
     MT.name[MT.times[index].name] = index;
     
-    target.removeAttribute("mt-time");
-    target.removeAttribute("mt-way");
-    target.removeAttribute("mt-show");
-    target.removeAttribute("mt-start");
-    target.removeAttribute("mt-complete");
-    target.removeAttribute("mt-interval");
-    target.removeAttribute("mt-end");
-    target.removeAttribute("mt-name");
-    
 }
 
 MT.working = function (index) {
@@ -150,7 +141,7 @@ MT.working = function (index) {
 }
 
 MT.build = function () {
-  for (z = 0; z < MT.targets().length; z) {
+  for (z = 0; z < MT.targets().length; z += 1) {
     MT.collect(z);
   }
 
@@ -160,6 +151,15 @@ MT.build = function () {
     }
     MT.start[i] = new MT.working(i);
     MT.work[i] = setInterval('MT.start[' + i + '].constructor(' + i + ')', 1000);
+      
+    MT.times[i].target.removeAttribute("mt-time");
+    MT.times[i].target.removeAttribute("mt-way");
+    MT.times[i].target.removeAttribute("mt-show");
+    MT.times[i].target.removeAttribute("mt-start");
+    MT.times[i].target.removeAttribute("mt-complete");
+    MT.times[i].target.removeAttribute("mt-interval");
+    MT.times[i].target.removeAttribute("mt-end");
+    MT.times[i].target.removeAttribute("mt-name");
   }
 };
 
