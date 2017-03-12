@@ -1,11 +1,12 @@
 [![mastertime](http://worn.online/timeMaster/mt-logo.jpg)](http://worn.online/)
+
 It allows you to create timers by writing very few JavaScript code.
 
 
 #### install mastertime
 ```html
 <head>
-    <script scr="mastertime-1.0.0.js">
+    <script src="mastertime-1.0.0.js">
 </head>
 ```
 
