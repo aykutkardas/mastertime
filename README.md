@@ -13,7 +13,7 @@ It allows you to create timers by writing very few JavaScript code.
 
 ```html
 <body onload="MT.build()">
-    <!--- --->
+    ...
 </body>
 ```
 
@@ -42,9 +42,18 @@ window.addEventListener('load', function(){
 This feature is necessary to set up a counter. If not specified, it will not work.
 Zero by default
 ```html
-<div mt-time></div> <!--- output: 00:00:00 Up count --->
+<div mt-time></div>
+```
 
-<div mt-time="60"></div> <!--- output: 00:00:60 Down count--->
+```
+output: 00:00:00 #Up count
+```
+
+```html
+<div mt-time="60"></div>
+```
+```
+output: 00:00:60 #Down count
 ```
 
 #### mt-end
@@ -71,9 +80,22 @@ It is meant to indicate what direction the timer will count.
 It is to specify how the timer will be displayed.
 
 ```html
-<div mt-time="60" mt-show="h:m:s"></div> <!--- output: 00:00:60 --->
-<div mt-time="60" mt-show="m:s"></div>   <!--- output: 00:60 --->
-<div mt-time="60" mt-show="s"></div>     <!--- output: 60 --->
+<div mt-time="60" mt-show="h:m:s"></div>
+```
+```
+output: 00:00:60
+```
+```html
+<div mt-time="60" mt-show="m:s"></div> 
+```
+```
+output: 00:60
+```
+```html
+<div mt-time="60" mt-show="s"></div> 
+```
+```
+output: 60
 ```
 #### mt-start
 It allows you to run a function/jscode when the timer starts.
@@ -99,9 +121,15 @@ Your timer will give you a name. This name is a tag that timer is needed to stop
 
 ```html
 <div mt-time="60" mt-name="visitTimer" mt-complete="console.log('visit timer complete')"></div>
+```
+* mt-complete will not work.
+```html
+<button onclick="MT.destroy('visitTimer')"></button>
+```
 
-<button onclick="MT.destroy('visitTimer')"></button>       <!--- mt-complete will not work. --->
-<button onclick="MT.destroy('visitTimer', true)"></button> <!--- mt-complete will work. --->
+* mt-complete will work.
+```html
+<button onclick="MT.destroy('visitTimer', true)"></button> 
 ```
 
 License
