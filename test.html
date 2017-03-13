@@ -8,7 +8,7 @@
 </head>
 
 
-<body onload="MT.build()">
+<body>
 
   <div 
   mt-time="5" 
@@ -32,6 +32,9 @@
   
   <button onclick="MT.destroy('upTime')">upTime Stop</button>
   
+<script>
+  MT.build(document.querySelectorAll('*[mt-time]'))
+</script>
 </body>
 
 </html>
