@@ -5,9 +5,9 @@ It allows you to create timers by writing very few JavaScript code.
 
 #### install mastertime
 ```html
-<head>
-    <script src="mastertime-1.0.0.js">
-</head>
+    <!-- MasterTime v1.1.0 BETA -->
+    <script src="mastertime-1.1.0.js">
+</body>
 ```
 
 #### Timers trigger.
@@ -38,6 +38,57 @@ window.addEventListener('load', function(){
 
 ## Mastertime Attributes
 
+
+### mt-ago 
+##### *[new attribute]*
+```html
+<div mt-ago="68"></div>
+```
+
+```
+output: 1 minute ago
+```
+
+```html
+<div mt-ago="7400"></div>
+```
+
+```
+output: 2 hour ago
+```
+
+#### Configure
+
+Notice: *After library addition*
+
+```html
+    <script src="mastertime-1.1.0.js">
+    <script>
+        MT.configure({
+          second: 'saniye',
+          minute: 'dakika',
+          hour: 'saat',
+          day: 'gün',
+          week: 'hafta',
+          month: 'ay',
+          year: 'yıl',
+          ago: 'önce',
+          format: '<div class="post-date"><i>{t} </i> <b>{k}</b> {a}</div>'
+        });
+    </script>
+```
+
+##### Format {t}, {k}, {a}
+Number: {t} Time value. e.g. 48 
+
+String: {k} Time keyword. e.g. minute
+
+String: {a} Ago keyword. e.g. ago
+
+*Use it in an unordered and free manner.*
+```js
+    format: '<div class="a"><i>{t} </i> <b>{k}</b> {a}</div>'
+```
 
 #### mt-time
 This feature is necessary to set up a counter. If not specified, it will not work.
