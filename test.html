@@ -4,11 +4,10 @@
 <head>
   <meta author="Aykut Kardaş">
   <title>mastertime Test | Example</title>
-  <script src="mastertime-1.0.0.js"></script>
 </head>
 
 
-<body>
+<body onload="MT.build();">
 
   <div 
   mt-time="5" 
@@ -31,10 +30,8 @@
   </span>
   
   <button onclick="MT.destroy('upTime')">upTime Stop</button>
-  
-<script>
-  MT.build(document.querySelectorAll('*[mt-time]'))
-</script>
+
+    <script src="mastertime-1.1.0.js"></script>
 </body>
 
 </html>
