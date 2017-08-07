@@ -204,9 +204,15 @@ MT.build = function (target) {
     }
 
     for (i = 0; i < MT.times.length; i += 1) {
-        var time = MT.times[i]
-        if (time.start) {
-            setTimeout(time.start, 0);
+        var timer = MT.times[i]
+        if (timer.start) {
+            // setTimeout(timer.start, 0);
+            var mt_cb_fn = new Function(["_MT", "TIME"], timer.start);
+            mt_cb_fn(timer, {
+              'hour' : Math.floor(timer.time / 60 / 60),
+              'minute' : Math.floor((timer.time % 3600) / 60),
+              'second' : (timer.time % 3600) % 60
+            });
         }
         MT.start[i] = MT.working(i);
         MT.work[i] = setInterval((function (i) {
@@ -214,10 +220,10 @@ MT.build = function (target) {
                 MT.start[i](i)
             }
         })(i), 1000);
-        for (var j in time.target.attributes) {
-            var attr = time.target.attributes[j]
+        for (var j in timer.target.attributes) {
+            var attr = timer.target.attributes[j]
             if (attr && attr.name && attr.name.match(/mt\-/)) {
-                time.target.removeAttribute(attr.name);
+                timer.target.removeAttribute(attr.name);
             }
         }
     }
