@@ -6,7 +6,7 @@ It allows you to create timers by writing very few JavaScript code.
 #### install mastertime
 ```html
     <!-- MasterTime v1.1.0 BETA -->
-    <script src="mastertime-1.1.0.js">
+    <script src="mastertime-1.1.1.js">
 </body>
 ```
 
