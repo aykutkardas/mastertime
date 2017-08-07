@@ -62,7 +62,7 @@ output: 2 hour ago
 Notice: *After library addition*
 
 ```html
-    <script src="mastertime-1.1.0.js">
+    <script src="mastertime-1.1.1.js">
     <script>
         MT.configure({
           second: 'saniye',
