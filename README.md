@@ -149,24 +149,48 @@ output: 00:60
 ```
 output: 60
 ```
+
+### Function Trigger "start,interval,complete"
+#### Callback support "_MT"
+```js
+_MT = {
+    ago : value,
+    complete : value,
+    end : value,
+    interval : value,
+    name : value,
+    show : value,
+    start : value,
+    target : value,
+    time : value,
+    way : value
+}
+```
+
 #### mt-start
 It allows you to run a function/jscode when the timer starts.
 
 ```html
-<div mt-time="60" mt-start="console.log('timer start.');"></div>
+Example 1: <div mt-time="60" mt-start="console.log('timer start.');"></div>
+Example 2: <div mt-time="10" mt-start="_MT.target.classList.add = 'animated bounce';"></div>
+Example 3: <div mt-time="10" mt-start="$(_MT.target).addClass('animated bounce');"></div>
 ```
 
 #### mt-interval
 You can run a function as long as the timer is running.
 
 ```html
-<div mt-time="60" mt-interval="console.log('timer interval.');"></div>
+Example 1: <div mt-time="60" mt-interval="console.log('timer interval.');"></div>
+Example 2: <div mt-time="10" mt-interval="_MT.time < 5 ? _MT.target.style.color = 'red' : false;"></div>
+Example 3: <div mt-time="10" mt-interval="_MT.time < 5 ? $(_MT.target).css('color', 'red') : false;"></div>
 ```
 #### mt-complete
 You can run a function when the timer stops.
 
 ```html
-<div mt-time="60" mt-complete="console.log('timer complete.');"></div>
+Example 1: <div mt-time="60" mt-complete="console.log('timer complete.');"></div>
+Example 2: <div mt-time="10" mt-complete="_MT.target.style.display = 'none';"></div>
+Example 3: <div mt-time="10" mt-complete="$(_MT.target).css('display', 'none');"></div>
 ```
 #### mt-name
 Your timer will give you a name. This name is a tag that timer is needed to stop from the outside.
