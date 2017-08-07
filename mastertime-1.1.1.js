@@ -142,33 +142,21 @@ MT.working = function (index) {
     if (ago) {
         if (hour >= 8064) {
             result = Math.floor(hour / 8064);
-            target.innerHTML = MT.conf.format.MTformat(result, MT.conf.year, MT.conf.ago);
-            target.value = MT.conf.format.MTformat(result, MT.conf.year, MT.conf.ago);
         } else if (hour >= 672) {
             result = Math.floor(hour / 672);
-            target.innerHTML = MT.conf.format.MTformat(result, MT.conf.month, MT.conf.ago);
-            target.value = MT.conf.format.MTformat(result, MT.conf.month, MT.conf.ago);
         } else if (hour >= 168) {
             result = Math.floor(hour / 168);
-            target.innerHTML = MT.conf.format.MTformat(result, MT.conf.week, MT.conf.ago);
-            target.value = MT.conf.format.MTformat(result, MT.conf.week, MT.conf.ago);
         } else if (hour >= 24) {
             result = Math.floor(hour / 24);
-            target.innerHTML = MT.conf.format.MTformat(result, MT.conf.day, MT.conf.ago);
-            target.value = MT.conf.format.MTformat(result, MT.conf.day, MT.conf.ago);
         } else if (hour < 24 && hour > 0) {
             result = hour;
-            target.innerHTML = MT.conf.format.MTformat(result, MT.conf.hour, MT.conf.ago);
-            target.value = MT.conf.format.MTformat(result, MT.conf.hour, MT.conf.ago);
         } else if (minute >= 1) {
             result = minute;
-            target.innerHTML = MT.conf.format.MTformat(result, MT.conf.minute, MT.conf.ago);
-            target.value = MT.conf.format.MTformat(result, MT.conf.minute, MT.conf.ago);
         } else {
             result = second;
-            target.innerHTML = MT.conf.format.MTformat(result, MT.conf.second, MT.conf.ago);
-            target.value = MT.conf.format.MTformat(result, MT.conf.second, MT.conf.ago);
         }
+        target.innerHTML = MT.conf.format.MTformat(result, MT.conf.second, MT.conf.ago);
+        target.value = MT.conf.format.MTformat(result, MT.conf.second, MT.conf.ago);
 
         if (timer.ago) {
             timer.ago = time;
@@ -194,7 +182,7 @@ MT.working = function (index) {
 }
 
 MT.pad = function (num) {
-    return ("0" + num).substr(-2)
+    return ("0" + num).substr(-2);
 }
 
 MT.build = function (target) {
