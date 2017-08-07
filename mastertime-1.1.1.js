@@ -230,8 +230,14 @@ MT.destroy = function (index, complete) {
         clearInterval(MT.work[index]);
     }
     if (complete) {
-        if (MT.times[MT.name[index]].complete) {
-            setTimeout(MT.times[MT.name[index]].complete, 0);
+      var timer = MT.times[MT.name[index]];
+        if (timer.complete) {
+            var mt_cb_fn = new Function(["_MT", "TIME"], timer.complete);
+            mt_cb_fn(timer, {
+              'hour' : Math.floor(timer.time / 60 / 60),
+              'minute' : Math.floor((timer.time % 3600) / 60),
+              'second' : (timer.time % 3600) % 60
+            });
         }
     }
 }
