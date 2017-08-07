@@ -1,11 +1,11 @@
 /*!
- * masterTime JavaScript Library v1.1.0
- * https://worn.online/masterTime
+ * masterTime JavaScript Library v1.1.1
+ * https://github.com/aykutkardas/mastertime/
  *
  * Author: Aykut KARDAŞ
  * Released under the MIT license
  *
- * Date: 2017-21-05T00:10Z
+ * Date: 2017-08-07T12:21Z
  */
 
 var MT = MT || {};
@@ -97,24 +97,44 @@ MT.working = function (index) {
         if (time < end) {
             time += 1;
             if (interval) {
-                setTimeout(interval, 0);
+              var mt_cb_fn = new Function(["_MT", "TIME"],interval);
+              mt_cb_fn(timer, {
+                'hour': hour,
+                'minute': minute,
+                'second': second
+              });
             }
         } else {
             MT.destroy(index);
             if (complete) {
-                setTimeout(complete, 0);
+              var mt_cb_fn = new Function(["_MT", "TIME"],complete);
+              mt_cb_fn(timer, {
+                'hour': hour,
+                'minute': minute,
+                'second': second
+              });
             }
         }
     } else if (way === "down") {
         if (time > end) {
             time -= 1;
             if (interval) {
-                setTimeout(interval, 0);
+              var mt_cb_fn = new Function(["_MT", "TIME"],interval);
+              mt_cb_fn(timer, {
+                'hour': hour,
+                'minute': minute,
+                'second': second
+              });
             }
         } else {
             MT.destroy(index);
             if (complete) {
-                setTimeout(complete, 0);
+              var mt_cb_fn = new Function(["_MT", "TIME"],complete);
+              mt_cb_fn(timer, {
+                'hour': hour,
+                'minute': minute,
+                'second': second
+              });
             }
         }
     }
@@ -229,15 +249,5 @@ MT.conf = {
 }
 
 MT.configure = function (CONF) {
-    MT.conf = {
-        second: CONF.second || 'second',
-        minute: CONF.minute || 'minute',
-        hour: CONF.hour || 'hour',
-        day: CONF.day || 'day',
-        week: CONF.week || 'week',
-        month: CONF.month || 'month',
-        year: CONF.year || 'year',
-        ago: CONF.ago || 'ago',
-        format: CONF.format || '{t} {k} {a}'
-    }
+  Object.assign(MT.conf, CONF);
 }
