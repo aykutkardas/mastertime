@@ -1,5 +1,11 @@
-/* Mastertime 2.0.0 Alfa Version */
-
+/*!
+ *
+ * Mastertime JavaScript Library v1.2.0
+ * Author: Aykut Kardaş
+ * Github: http://github.com/aykutkardas/mastertime
+ * Date: 09.08.2017
+ *
+ */
 
 // Mastertime Namespace
 var MT = MT || {};
@@ -61,12 +67,14 @@ MT.collect = function(selector){
   var groupIndex = timeBaseLength > 0 ? timeBaseLength : 0;
   MT.timebase[groupIndex] = [];
 
+  // Checks if the element is DOM.
   if(selector.tagName){
     elems = [selector];
   } else {
     elems = document.querySelectorAll(selector);
   }
 
+  // Filter what is not used by MT.
   if (elems.length > 0) {
     var newElems = [];
     for (var i = 0; i < elems.length; i++){
@@ -207,10 +215,9 @@ MT.working = function(groupIndex, index){
                 tempIntervalFn(timer);
               }
           } else {
-              // MT.destroy(name); //[NOTE] parametreyi izle.
-              destroy = true;
+              clearInterval(MT.jobs[groupIndex][index]);
               if (complete) {
-                var tempCompleteFn = new Function(["$MT"], interval);
+                var tempCompleteFn = new Function(["$MT"], complete);
                 tempCompleteFn(timer);
               }
           }
@@ -222,10 +229,9 @@ MT.working = function(groupIndex, index){
                 tempIntervalFn(timer);
               }
           } else {
-              // MT.destroy(name); //[NOTE] parametreyi izle.
-              destroy = true;
+              clearInterval(MT.jobs[groupIndex][index]);
               if (complete) {
-                var tempCompleteFn = new Function(["$MT"], interval);
+                var tempCompleteFn = new Function(["$MT"], complete);
                 tempCompleteFn(timer);
               }
           }
@@ -264,7 +270,6 @@ MT.working = function(groupIndex, index){
           target.value = output;
           timer.ago = time;
 
-          // return MT.working; //[NOTE] Kendini döndürmesi gerekli mi?
 
       } else {
           if (show) {
@@ -279,23 +284,15 @@ MT.working = function(groupIndex, index){
           target.innerHTML = output;
           target.value = output;
           timer.time = time;
-          // return MT.working; //[NOTE] Kendini döndürmesi gerekli mi?
       }
-
-      if(destroy) MT.destroy(name);
-
-
 }
 
 // jQuery Method
 // $(selector).mastertime({attributes});
 document.addEventListener("DOMContentLoaded", function() {
   if($){
-    $.fn["mastertime"] = function(obj) {
-      if(obj){
-        this.attr(obj);
-      }
-
+    $.fn.masterime = function(obj) {
+      if(obj) this.attr(obj);
       var selector = this.selector ? this.selector : this[0];
       MT.build(selector);
     }
