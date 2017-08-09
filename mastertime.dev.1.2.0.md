@@ -256,6 +256,19 @@ Output:
 ```
 
 
+### jQuery support
+```html
+<div class="time"></div>
+```
+
+```js
+$(".time").mastertime({
+    "mt-time" : 50,
+    "mt-way" : "up",
+    "mt-interval" : "console.log($MT.time)"
+})
+```
+
 License
 ----
 
