@@ -120,7 +120,7 @@ output: 60
 ```
 
 ### Function Trigger "start,interval,complete"
-#### Callback support "_MT"
+#### Callback support "$MT"
 ```js
 $MT = {
   ago : value,
