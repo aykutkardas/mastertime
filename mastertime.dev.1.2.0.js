@@ -410,7 +410,7 @@ MT.working = function(groupIndex, index){
 // jQuery Method
 // $(selector).mastertime({attributes});
 document.addEventListener("DOMContentLoaded", function() {
-  if($){
+  if(typeof $ === "object"){
     $.fn.mastertime = function(obj) {
       if(obj) this.attr(obj);
       var selector = this.selector ? this.selector : this[0];
