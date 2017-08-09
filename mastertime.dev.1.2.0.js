@@ -1,5 +1,5 @@
 /*!
- * Alpha Version 
+ * Alpha Version
  * Mastertime JavaScript Library v1.2.0
  * Author: Aykut Kardaş
  * Github: http://github.com/aykutkardas/mastertime
@@ -63,7 +63,7 @@ MT.tools.format = function(str,arg,key){
   return str;
 }
 MT.tools.pad = function(num){
-    return ("0" + num).substr(-2);
+    return num < 10 || num.length < 2 ? ("0" + num) : num;
 }
 
 // Date to Time Convert Method
@@ -128,16 +128,15 @@ MT.date = function(date){
       }
 
     }
-    currentDate = new Date(year, month, day, hour, minute, second);
 
-    mtTime = now.getTime() - currentDate.getTime();
+    currentDate = new Date(year, month, day, hour, minute, second);
+    mtTime = (now.getTime() - currentDate.getTime()) / 1000;
 
     // mt-time & mt-way
     if(mtTime < 0) {
-      mtTime = (-(mtTime))/1000;
+      mtTime = -(mtTime);
       mtWay = "down";
     } else {
-      mtTime = mtTime/1000;
       mtWay = "up";
     }
 
@@ -146,6 +145,7 @@ MT.date = function(date){
       "way"  : mtWay,
       "date" : currentDate
     }
+
   }
 }
 
@@ -158,14 +158,11 @@ MT.collect = function(selector){
   MT.timebase[groupIndex] = [];
 
   // Checks if the element is DOM.
-  if(selector.tagName){
-    elems = [selector];
-  } else {
-    elems = document.querySelectorAll(selector);
-  }
+  elems = selector.tagName ? [selector] : document.querySelectorAll(selector);
 
   // Filter what is not used by MT.
   if (elems.length > 0) {
+
     var newElems = [];
     for (var i = 0; i < elems.length; i++){
       if(elems[i].mtUsed !== true) {
@@ -175,7 +172,9 @@ MT.collect = function(selector){
 
 
     if(newElems.length > 0){
+
       for (var i = 0; i < newElems.length; i++) {
+
         var target = newElems[i];
         target.mtUsed = true;
         function attr(name) {
@@ -183,7 +182,7 @@ MT.collect = function(selector){
         }
 
         var mtDate = MT.date(attr("date")) || {};
-        var timeData ={
+        var timeData = {
             "target"  : target,
             "name"    : attr("name") || i,
             "time"    : mtDate.time || Number(attr("time")),
@@ -277,10 +276,7 @@ MT.working = function(groupIndex, index){
       hour     = Math.floor((time % 86400) / 3600) || "0",
       minute   = Math.floor((time % 3600) / 60) || "0",
       second   = (time % 3600) % 60 || "0",
-      output,
-      result,
-      key,
-      destroy;
+      output;
 
       if (format.indexOf("@") === 0) {
         format = MT.templates[format.substr(1)];
@@ -293,7 +289,7 @@ MT.working = function(groupIndex, index){
       if (end !== null) {
 
           end = Number(end);
-          time < end ? way = "up" : way = "down";
+          way = time < end ? "up" : "down";
 
       } else if (end === null && way) {
 
@@ -345,6 +341,7 @@ MT.working = function(groupIndex, index){
       }
 
       if (ago) {
+        var result, key;
         if (hour >= 8064) {
           result = Math.floor(hour / 8064);
           key = "year";
