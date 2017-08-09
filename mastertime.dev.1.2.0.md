@@ -182,9 +182,9 @@ Example 3 (jQuery):
 Your timer will give you a name. This name is a tag that timer is needed to stop from the outside.
 
 ```html
-<div mt-time="60" mt-name="Test" mt-complete="console.log('visit timer complete')"></div>
-<div mt-time="53" mt-name="Test" mt-complete="console.log('visit timer complete')"></div>
-<div mt-time="26" mt-name="Test" mt-complete="console.log('visit timer complete')"></div>
+<div mt-time="60" mt-name="Test" mt-complete="console.log('Test complete')"></div>
+<div mt-time="53" mt-name="Test" mt-complete="console.log('Test complete')"></div>
+<div mt-time="26" mt-name="Test" mt-complete="console.log('Test complete')"></div>
 ```
 * mt-complete will not work.
 ```html
@@ -196,10 +196,65 @@ Your timer will give you a name. This name is a tag that timer is needed to stop
 <button onclick="MT.destroy('Test', true)"></button> 
 ```
 
-### mt-date 
+### mt-date
 
-### MT.templates 
+D: Day
+M: Month
+Y: Year
+h: Hour
+m: Minute
+s: Second
+
+```html
+<div mt-date="DD.MM.YYYY|hh:mm:ss"></div> 
+<div mt-date="DD.MM.YYYY"></div> 
+<div mt-date="hh:mm:ss"></div>
+<div mt-date="DD.MM"></div> 
+<div mt-date="DD|hh:mm"></div> 
+<div mt-date="DD|hh"></div> 
+<div mt-date="DD"></div> 
+```
+
 ### mt-format 
+```html
+<div 
+class="date" 
+mt-date="17.06.2015" 
+mt-format="<i>{Y} year</i><i>{M} month</i><i>{D} day</i><i>{h} hour</i><i>{m} minute</i><i>{s} second ago</i>"></div>
+
+Output:
+<div class="date>
+    <i>2 year</i>
+    <i>1 month</i>
+    <i>23 day</i>
+    <i>16 hour</i>
+    <i>56 minute</i>
+    <i>33 second ago</i>
+</div>
+```
+### MT.templates
+
+```js
+MT.templates["dateTemplate"] = "<i>{Y} year</i><i>{M} month</i><i>{D} day</i><i>{h} hour</i><i>{m} minute</i><i>{s} second ago</i>";
+```
+
+```html
+<div 
+class="date" 
+mt-date="17.06.2015" 
+mt-format="@dateTemplate">
+
+Output:
+<div class="date">
+    <i>2 year</i>
+    <i>1 month</i>
+    <i>23 day</i>
+    <i>16 hour</i>
+    <i>56 minute</i>
+    <i>33 second ago</i>
+</div>
+```
+
 
 License
 ----
