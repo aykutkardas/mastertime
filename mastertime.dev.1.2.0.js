@@ -199,11 +199,12 @@ MT.collect = function(selector){
 
         MT.timebase[groupIndex].push(timeData);
 
-        if(MT.names[timeData.name]){
-          MT.names[timeData.name].push({"groupIndex": groupIndex, "index": i});
-        } else {
-          MT.names[timeData.name] = [{"groupIndex": groupIndex, "index": i}];
-        }
+        var nameData = {
+          "groupIndex": groupIndex,
+          "index": i
+        };
+
+        MT.names[timeData.name] ? MT.names[timeData.name].push(nameData) : [nameData];
       }
     }
   }
@@ -212,9 +213,12 @@ MT.collect = function(selector){
 
 // Build
 MT.build = function(selector){
+
   var groupIndex = MT.collect(selector);
   MT.jobs[groupIndex] = [];
+
   for (var i = 0; i < MT.timebase[groupIndex].length; i++) {
+
     var timer = MT.timebase[groupIndex][i];
     if(timer.start){
       var tempStartFn = new Function(["$MT"], timer.start);
@@ -240,23 +244,33 @@ MT.build = function(selector){
 
 // Destroy
 MT.destroy = function(name, complete){
+
   if(name){
     var timeNames = MT.names[name];
     if(timeNames.length > 0){
+
       for (var i = 0; i < timeNames.length; i++) {
-        clearInterval(MT.jobs[timeNames[i].groupIndex][timeNames[i].index]);
-        var timer = MT.timebase[timeNames[i].groupIndex][timeNames[i].index];
+
+        var groupIndex = timeNames[i].groupIndex;
+        var index = timeNames[i].index;
+
+        clearInterval(MT.jobs[groupIndex][index]);
+        var timer = MT.timebase[groupIndex][index];
+
         if(complete === true && timer.complete) {
           var tempCompleteFn = new Function(["$MT"], timer.complete);
           tempCompleteFn(timer);
         }
+
       }
+
     }
   }
 }
 
 // Working
 MT.working = function(groupIndex, index){
+
   var timer    = MT.timebase[groupIndex][index];
   var target   = timer.target,
       name     = timer.name,
@@ -278,7 +292,7 @@ MT.working = function(groupIndex, index){
       second   = (time % 3600) % 60 || "0",
       output;
 
-      if (format.indexOf("@") === 0) {
+      if (format && format.indexOf("@") === 0) {
         format = MT.templates[format.substr(1)];
       }
 
