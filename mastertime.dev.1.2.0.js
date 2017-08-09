@@ -30,15 +30,15 @@ MT.options = {}
 
 // mtAgo Options
 MT.options.ago = {
-  "second": "second",
-  "minute": "minute",
-  "hour": "hour",
-  "day": "day",
-  "week": "week",
-  "month": "month",
-  "year": "year",
-  "ago": "ago",
-  "format": "{t} {k} {a}"
+  "second" : "second",
+  "minute" : "minute",
+  "hour"   : "hour",
+  "day"    : "day",
+  "week"   : "week",
+  "month"  : "month",
+  "year"   : "year",
+  "ago"    : "ago",
+  "format" : "{t} {k} {a}"
 }
 
 // Option Configure Method
