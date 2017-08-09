@@ -1,5 +1,5 @@
 /*!
- *
+ * Alpha Version 
  * Mastertime JavaScript Library v1.2.0
  * Author: Aykut Kardaş
  * Github: http://github.com/aykutkardas/mastertime
@@ -21,6 +21,9 @@ MT.jobs = [];
 
 // Name Storage
 MT.names = {};
+
+// Template Storage
+MT.templates = {};
 
 // Option Storage
 MT.options = {}
@@ -46,17 +49,104 @@ MT.configure = function(name, conf){
 }
 
 // Methods
-MT.tools.agoTemplateFormat = function(str,arg){
+MT.tools.format = function(str,arg,key){
   for (var i = 0; i < arg.length; i++) {
-      var keys = ["t", "k", "a"];
+      var keys = {
+        "ago" : ["t", "k", "a"],
+        "time" : ["Y", "M", "D", "h", "m", "s"]
+      }
+      var currentKeys = keys[key];
       if (arg[i]) {
-          str = str.replace("{" + keys[i] + "}", arg[i]);
+          str = str.replace("{" + currentKeys[i] + "}", MT.tools.pad(arg[i]));
       }
   }
   return str;
 }
 MT.tools.pad = function(num){
     return ("0" + num).substr(-2);
+}
+
+// Date to Time Convert Method
+MT.date = function(date){
+
+  if(date){
+    var date = date.split("|"),
+        now = new Date(),
+        time,
+        day,
+        month,
+        year,
+        hour,
+        minute,
+        second,
+        mtTime,
+        currentDate;
+
+    // day.month.year|hour:minute:second
+    if(date.length === 2){
+      time = date[1];
+      date = date[0];
+
+      date = date.split(".");
+      time = time.split(":");
+
+      day    = date[0];
+      month  = date[1] ? parseInt(date[1]) -1 : now.getMonth();
+      year   = date[2] || now.getFullYear();
+      hour   = time[0];
+      minute = time[1] || "00";
+      second = time[2] || "00";
+
+
+    // day.month.year OR hour:minute:second
+    } else {
+
+      date = date[0];
+
+      // hour:minute:second
+      if(date.indexOf(":") > -1){
+
+        time   = date.split(":");
+        day    = now.getDate();
+        month  = now.getMonth();
+        year   = now.getFullYear();
+        hour   = time[0];
+        minute = time[1] || "00";
+        second = time[2] || "00";
+
+      // day.month.year
+      } else {
+
+        date   = date.split(".");
+        day    = date[0];
+        month  = date[1] ? parseInt(date[1])-1 : now.getMonth();
+        year   = date[2] = date[2] || now.getFullYear();
+        hour   = "00";
+        minute = "00";
+        second = "00";
+
+      }
+
+    }
+    currentDate = new Date(year, month, day, hour, minute, second);
+
+    mtTime = now.getTime() - currentDate.getTime();
+
+    // mt-time & mt-way
+    if(mtTime < 0) {
+      mtTime = (-(mtTime))/1000;
+      mtWay = "down";
+    } else {
+      mtTime = mtTime/1000;
+      mtWay = "up";
+    }
+
+    return {
+      "time" : Math.floor(mtTime),
+      "way"  : mtWay,
+      "date" : currentDate
+    }
+  }
 }
 
 // Collect
@@ -91,17 +181,21 @@ MT.collect = function(selector){
         function attr(name) {
           return target.getAttribute("mt-" + name);
         }
+
+        var mtDate = MT.date(attr("date")) || {};
         var timeData ={
-            "target": target,
-            "name": attr("name") || i,
-            "time": Number(attr("time")),
-            "way": attr("way"),
-            "show": attr("show"),
-            "start": attr("start"),
+            "target"  : target,
+            "name"    : attr("name") || i,
+            "time"    : mtDate.time || Number(attr("time")),
+            "way"     :  mtDate.way || attr("way"),
+            "date"    : attr("date"),
+            "format"  : attr("format"),
+            "show"    : attr("show"),
+            "start"   : attr("start"),
             "complete": attr("complete"),
             "interval": attr("interval"),
-            "end": attr("end"),
-            "ago": attr("ago")
+            "end"     : attr("end"),
+            "ago"     : attr("ago")
         };
 
         MT.timebase[groupIndex].push(timeData);
@@ -128,6 +222,7 @@ MT.build = function(selector){
       tempStartFn(timer);
     }
 
+    MT.working(groupIndex,i);
     MT.jobs[groupIndex][i] = setInterval((function(i){
       return function () {
         MT.working(groupIndex,i);
@@ -163,39 +258,50 @@ MT.destroy = function(name, complete){
 
 // Working
 MT.working = function(groupIndex, index){
-  var timer = MT.timebase[groupIndex][index];
-  var target = timer.target,
-      name = timer.name,
-      time = timer.ago ? Number(timer.ago) : timer.time,
-      way = timer.way,
-      show = timer.show,
-      start = timer.start,
+  var timer    = MT.timebase[groupIndex][index];
+  var target   = timer.target,
+      name     = timer.name,
+      time     = timer.ago ? Number(timer.ago) : timer.time,
+      way      = timer.way,
+      date     = timer.date,
+      format   = timer.format,
+      show     = timer.show,
+      start    = timer.start,
       complete = timer.complete,
       interval = timer.interval,
-      end = timer.end,
-      ago = timer.ago,
-      hour = Math.floor(time / 60 / 60),
-      minute = Math.floor((time % 3600) / 60),
-      second = (time % 3600) % 60,
+      end      = timer.end,
+      ago      = timer.ago,
+      year     = Math.floor(time / 31556925.96) || "0",
+      month    = Math.floor((time % 31556925.96) / 2629743.83) || "0",
+      day      = Math.floor((time % 2629743.83) / 86400) || "0",
+      hour     = Math.floor((time % 86400) / 3600) || "0",
+      minute   = Math.floor((time % 3600) / 60) || "0",
+      second   = (time % 3600) % 60 || "0",
       output,
       result,
       key,
       destroy;
 
-      if(ago) {
+      if (format.indexOf("@") === 0) {
+        format = MT.templates[format.substr(1)];
+      }
+
+      if (ago) {
         way = "up";
       }
 
       if (end !== null) {
+
           end = Number(end);
           time < end ? way = "up" : way = "down";
+
       } else if (end === null && way) {
-          if (way === "up") {
-              end = time + 5;
-          } else if (way === "down") {
-              end = 0;
-          }
+
+          if (way === "up") end = time + 5;
+          else if (way === "down") end = 0;
+
       } else if (end === null && !way) {
+
           if (time === 0) {
               way = "up";
               end = time + 5;
@@ -205,6 +311,7 @@ MT.working = function(groupIndex, index){
               end = 0;
               timer.way = way;
           }
+
       }
 
       if (way === "up") {
@@ -264,7 +371,7 @@ MT.working = function(groupIndex, index){
           var keyword = MT.options.ago[key];
           var ago = MT.options.ago["ago"];
           var format = MT.options.ago["format"];
-          var output = MT.tools.agoTemplateFormat(format, [result, keyword, ago]);
+          var output = MT.tools.format(format, [result, keyword, ago], "ago");
 
           target.innerHTML = output;
           target.value = output;
@@ -277,6 +384,8 @@ MT.working = function(groupIndex, index){
                   return "MT.tools.pad(" + p + ")"
               }).join("+':'+")
               output = new Function("h, m, s", "return " + values)(hour, minute, second);
+          } else if (format) {
+              output = MT.tools.format(format, [year, month, day, hour, minute, second], "time");
           } else {
               output = MT.tools.pad(hour) + ":" + MT.tools.pad(minute) + ":" + MT.tools.pad(second);
           }
@@ -291,7 +400,7 @@ MT.working = function(groupIndex, index){
 // $(selector).mastertime({attributes});
 document.addEventListener("DOMContentLoaded", function() {
   if($){
-    $.fn.masterime = function(obj) {
+    $.fn.mastertime = function(obj) {
       if(obj) this.attr(obj);
       var selector = this.selector ? this.selector : this[0];
       MT.build(selector);
