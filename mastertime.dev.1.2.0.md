@@ -242,7 +242,7 @@ MT.templates["dateTemplate"] = "<i>{Y} year</i><i>{M} month</i><i>{D} day</i><i>
 <div 
 class="date" 
 mt-date="17.06.2015" 
-mt-format="@dateTemplate">
+mt-format="@dateTemplate"></div>
 
 Output:
 <div class="date">
