@@ -101,24 +101,6 @@ It is meant to indicate what direction the timer will count.
 <div mt-time="0" mt-way="up"></div>
 <div mt-time="60" mt-way="down"></div>
 ```
-
-#### mt-show
-
-It is to specify how the timer will be displayed.
-
-```html
-<div mt-time="60" mt-show="h:m:s"></div>
-output: 00:00:60
-```
-```html
-<div mt-time="60" mt-show="m:s"></div> 
-output: 00:60
-```
-```html
-<div mt-time="60" mt-show="s"></div> 
-output: 60
-```
-
 ### Function Trigger "start,interval,complete"
 #### Callback support "$MT"
 ```js
@@ -217,6 +199,10 @@ s: Second
 
 ### mt-format 
 ```html
+<div mt-time="50" mt-format="{h} | {m} | {s}"></div>
+Output: 
+<div>00 | 00 | 50</div>
+
 <div 
 class="date" 
 mt-date="17.06.2015" 
