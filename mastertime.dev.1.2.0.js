@@ -28,6 +28,11 @@ MT.templates = {};
 // Option Storage
 MT.options = {}
 
+// mtTime Options
+MT.options.time = {};
+MT.options.time["seperator"]  = ":";
+MT.options.time["format"]     = "{h}" + MT.options.time["seperator"] + "{m}" + MT.options.time["seperator"] + "{s}";
+
 // mtAgo Options
 MT.options.ago = {
   "second" : "second",
@@ -177,6 +182,7 @@ MT.collect = function(selector){
 
         var target = newElems[i];
         target.mtUsed = true;
+
         function attr(name) {
           return target.getAttribute("mt-" + name);
         }
@@ -186,7 +192,7 @@ MT.collect = function(selector){
             "target"  : target,
             "name"    : attr("name") || i,
             "time"    : mtDate.time || Number(attr("time")),
-            "way"     :  mtDate.way || attr("way"),
+            "way"     : mtDate.way || attr("way"),
             "date"    : attr("date"),
             "format"  : attr("format"),
             "show"    : attr("show"),
@@ -232,10 +238,13 @@ MT.build = function(selector){
       }
     })(i), 1000);
 
-    for(var j in timer.target.attributes) {
-      var attr = timer.target.attributes[j];
-      if (attr && attr.name && attr.name.match(/mt\-/)) {
-          timer.target.removeAttribute(attr.name);
+    // Clear MT attributes
+    var attributes =  timer.target.attributes;
+
+    for(var j = 0; j < attributes.length; j++) {
+      if(attributes[j].name && attributes[j].name.indexOf("mt-") === 0){
+        timer.target.removeAttribute(attributes[j].name);
+        j-=1;
       }
     }
 
@@ -284,12 +293,12 @@ MT.working = function(groupIndex, index){
       interval = timer.interval,
       end      = timer.end,
       ago      = timer.ago,
-      year     = Math.floor(time / 31556925.96) || "0",
+      year     = Math.floor(time / 31556925.96)                || "0",
       month    = Math.floor((time % 31556925.96) / 2629743.83) || "0",
-      day      = Math.floor((time % 2629743.83) / 86400) || "0",
-      hour     = Math.floor((time % 86400) / 3600) || "0",
-      minute   = Math.floor((time % 3600) / 60) || "0",
-      second   = (time % 3600) % 60 || "0",
+      day      = Math.floor((time % 2629743.83) / 86400)       || "0",
+      hour     = Math.floor((time % 86400) / 3600)             || "0",
+      minute   = Math.floor((time % 3600) / 60)                || "0",
+      second   = Math.floor((time % 3600) % 60)                || "0",
       output;
 
       if (format && format.indexOf("@") === 0) {
@@ -380,41 +389,38 @@ MT.working = function(groupIndex, index){
         }
 
           var keyword = MT.options.ago[key];
-          var ago = MT.options.ago["ago"];
-          var format = MT.options.ago["format"];
-          var output = MT.tools.format(format, [result, keyword, ago], "ago");
+          var ago     = MT.options.ago["ago"];
+          var format  = MT.options.ago["format"];
+          var output  = MT.tools.format(format, [result, keyword, ago], "ago");
 
           target.innerHTML = output;
-          target.value = output;
-          timer.ago = time;
+          target.value     = output;
+          timer.ago        = time;
 
 
       } else {
-          if (show) {
-              var values = show.split(":").map(function (p) {
-                  return "MT.tools.pad(" + p + ")"
-              }).join("+':'+")
-              output = new Function("h, m, s", "return " + values)(hour, minute, second);
-          } else if (format) {
-              output = MT.tools.format(format, [year, month, day, hour, minute, second], "time");
-          } else {
-              output = MT.tools.pad(hour) + ":" + MT.tools.pad(minute) + ":" + MT.tools.pad(second);
-          }
+
+          if (format) output = MT.tools.format(format, [year, month, day, hour, minute, second], "time");
+          else        output = MT.tools.format(MT.options.time["format"], [year, month, day, hour, minute, second],  "time");
 
           target.innerHTML = output;
-          target.value = output;
-          timer.time = time;
+          target.value     = output;
+          timer.time       = time;
       }
 }
 
 // jQuery Method
 // $(selector).mastertime({attributes});
 document.addEventListener("DOMContentLoaded", function() {
-  if(typeof $ === "object"){
+
+  if(typeof $ === "object" && typeof $.init === "object"){
+
     $.fn.mastertime = function(obj) {
       if(obj) this.attr(obj);
       var selector = this.selector ? this.selector : this[0];
       MT.build(selector);
     }
+
   }
+
 });
