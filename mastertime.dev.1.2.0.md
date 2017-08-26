@@ -142,10 +142,10 @@ Example 1:
 <div mt-time="60" mt-interval="console.log('timer interval.');"></div>
 
 Example 2: 
-<div mt-time="10" mt-interval="_MT.time < 5 ? $MT.target.style.color = 'red' : false;"></div>
+<div mt-time="10" mt-interval="$MT.time < 5 ? $MT.target.style.color = 'red' : false;"></div>
 
 Example 3 (jQuery): 
-<div mt-time="10" mt-interval="_MT.time < 5 ? $($MT.target).css('color', 'red') : false;"></div>
+<div mt-time="10" mt-interval="$MT.time < 5 ? $($MT.target).css('color', 'red') : false;"></div>
 ```
 #### mt-complete
 You can run a function when the timer stops.
