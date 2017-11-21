@@ -30,8 +30,13 @@ MT.options = {}
 
 // mtTime Options
 MT.options.time = {};
+
 MT.options.time["seperator"]  = ":";
-MT.options.time["format"]     = "{h}" + MT.options.time["seperator"] + "{m}" + MT.options.time["seperator"] + "{s}";
+
+MT.options.time["format"]     = ""   + 
+"{h}" + MT.options.time["seperator"] + 
+"{m}" + MT.options.time["seperator"] + 
+"{s}";
 
 // mtAgo Options
 MT.options.ago = {
@@ -54,10 +59,10 @@ MT.configure = function(name, conf){
 }
 
 // Methods
-MT.tools.format = function(str,arg,key){
+MT.tools.format = function(str, arg, key){
   for (var i = 0; i < arg.length; i++) {
       var keys = {
-        "ago" : ["t", "k", "a"],
+        "ago"  : ["t", "k", "a"],
         "time" : ["Y", "M", "D", "h", "m", "s"]
       }
       var currentKeys = keys[key];
@@ -67,6 +72,7 @@ MT.tools.format = function(str,arg,key){
   }
   return str;
 }
+
 MT.tools.pad = function(num){
     return num < 10 || num.length < 2 ? ("0" + num) : num;
 }
@@ -76,7 +82,7 @@ MT.date = function(date){
 
   if(date){
     var date = date.split("|"),
-        now = new Date(),
+        now  = new Date(),
         time,
         day,
         month,
@@ -89,6 +95,7 @@ MT.date = function(date){
 
     // day.month.year|hour:minute:second
     if(date.length === 2){
+
       time = date[1];
       date = date[0];
 
@@ -97,7 +104,8 @@ MT.date = function(date){
 
       day    = date[0];
       month  = date[1] ? parseInt(date[1]) -1 : now.getMonth();
-      year   = date[2] || now.getFullYear();
+			year   = date[2] || now.getFullYear();
+			
       hour   = time[0];
       minute = time[1] || "00";
       second = time[2] || "00";
@@ -111,10 +119,12 @@ MT.date = function(date){
       // hour:minute:second
       if(date.indexOf(":") > -1){
 
-        time   = date.split(":");
+				time   = date.split(":");
+				
         day    = now.getDate();
         month  = now.getMonth();
-        year   = now.getFullYear();
+				year   = now.getFullYear();
+				
         hour   = time[0];
         minute = time[1] || "00";
         second = time[2] || "00";
@@ -122,10 +132,12 @@ MT.date = function(date){
       // day.month.year
       } else {
 
-        date   = date.split(".");
+				date   = date.split(".");
+				
         day    = date[0];
         month  = date[1] ? parseInt(date[1])-1 : now.getMonth();
-        year   = date[2] = date[2] || now.getFullYear();
+				year   = date[2] = date[2] || now.getFullYear();
+				
         hour   = "00";
         minute = "00";
         second = "00";
@@ -293,7 +305,7 @@ MT.working = function(groupIndex, index){
       interval = timer.interval,
       end      = timer.end,
       ago      = timer.ago,
-      year     = Math.floor(time / 31556925.96)                || "0",
+      year     = Math.floor((time / 31556925.96))              || "0",
       month    = Math.floor((time % 31556925.96) / 2629743.83) || "0",
       day      = Math.floor((time % 2629743.83) / 86400)       || "0",
       hour     = Math.floor((time % 86400) / 3600)             || "0",
@@ -364,18 +376,20 @@ MT.working = function(groupIndex, index){
       }
 
       if (ago) {
+
         var result, key;
-        if (hour >= 8064) {
-          result = Math.floor(hour / 8064);
+
+        if (year > 0) {
+          result = year;
           key = "year";
-        } else if (hour >= 672) {
-          result = Math.floor(hour / 672);
+        } else if (month > 0) {
+          result = month;
           key = "month";
-        } else if (hour >= 168) {
-          result = Math.floor(hour / 168);
+        } else if (day > 6) {
+          result = day / 7;
           key = "week";
-        } else if (hour >= 24) {
-          result = Math.floor(hour / 24);
+        } else if (day > 0) {
+          result = day;
           key = "day";
         } else if (hour < 24 && hour > 0) {
           result = hour;
@@ -413,14 +427,17 @@ MT.working = function(groupIndex, index){
 // $(selector).mastertime({attributes});
 document.addEventListener("DOMContentLoaded", function() {
 
-  if(typeof $ === "object" && typeof $.init === "object"){
+	if(typeof $ === "object" && typeof $.init === "object"){
 
-    $.fn.mastertime = function(obj) {
-      if(obj) this.attr(obj);
-      var selector = this.selector ? this.selector : this[0];
-      MT.build(selector);
-    }
+		$.fn.mastertime = function(obj) {
 
-  }
+			if(obj) this.attr(obj);
+			
+			var selector = this.selector ? this.selector : this[0];
+			MT.build(selector);
+
+		}
+
+	}
 
 });
