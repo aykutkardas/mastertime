@@ -1,4 +1,4 @@
-[![mastertime](http://worn.online/timeMaster/mt-logo.jpg)](http://worn.online/)
+[![mastertime](https://github.com/aykutkardas/mastertime/blob/master/mt-logo.jpg)](https://github.com/aykutkardas/mastertime)
 
 It allows you to create timers by writing very few JavaScript code.
 
