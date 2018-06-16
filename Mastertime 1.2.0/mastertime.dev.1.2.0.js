@@ -33,10 +33,12 @@ MT.options.time = {};
 
 MT.options.time["seperator"]  = ":";
 
-MT.options.time["format"]     = ""   + 
-"{h}" + MT.options.time["seperator"] + 
-"{m}" + MT.options.time["seperator"] + 
-"{s}";
+MT.options.time["format"] = function(){ 
+  return  "" + 
+          "{h}" + MT.options.time["seperator"] + 
+          "{m}" + MT.options.time["seperator"] + 
+          "{s}";
+};
 
 // mtAgo Options
 MT.options.ago = {
@@ -415,7 +417,7 @@ MT.working = function(groupIndex, index){
       } else {
 
           if (format) output = MT.tools.format(format, [year, month, day, hour, minute, second], "time");
-          else        output = MT.tools.format(MT.options.time["format"], [year, month, day, hour, minute, second],  "time");
+          else        output = MT.tools.format(MT.options.time["format"](), [year, month, day, hour, minute, second],  "time");
 
           target.innerHTML = output;
           target.value     = output;
