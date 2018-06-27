@@ -69,7 +69,8 @@ MT.tools.format = function(str, arg, key){
       }
       var currentKeys = keys[key];
       if (arg[i]) {
-	  if(key === "time") arg[i] = MT.tools.pad(arg[i]);
+          if(arg[i] === "Y" || arg[i] === "M" || arg[i] === "D") 
+            arg[i] = MT.tools.pad(arg[i]);
           str = str.replace("{" + currentKeys[i] + "}",arg[i]);
       }
   }
