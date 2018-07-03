@@ -1,0 +1,7 @@
+{
+  "files": ["src/methods.ts"],
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "target": "es5"
+  }
+}

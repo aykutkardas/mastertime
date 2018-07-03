@@ -1,0 +1,30 @@
+{
+  "name": "mastertime",
+  "version": "1.0.0",
+  "description": "",
+  "main": "methods.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc src/methods --outDir dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/aykutkardas/mastertime.git"
+  },
+  "author": "Aykut Kardaş",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/aykutkardas/mastertime/issues"
+  },
+  "homepage": "https://gitlab.com/aykutkardas/mastertime#README",
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-minify": "^3.1.0",
+    "gulp-typescript": "^5.0.0-alpha.2",
+    "typescript": "^2.9.2"
+  }
+}

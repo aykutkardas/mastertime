@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="../dist/methods-min.js"></script>
+</head>
+<body>
+    <div class="timer" mtName="test" mtStart="45" mtOnStart="console.log('started timer!')"></div>
+    <script>
+        var a = dateCompletion("15:38:00");
+        var b = dateCompletion("22.11.1996");
+
+        a = dateFormatTransform(a);
+        b = dateFormatTransform(b);
+
+        var c = getTimeDiff(a, b);
+
+        var d = htmlSelecting(document.querySelector('.timer'));
+        console.log(d = htmlSelectingFormatter(d));
+
+        d.mtOnStart();
+
+    </script>
+</body>
+</html>
