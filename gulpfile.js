@@ -14,4 +14,4 @@ gulp.task("default", function() {
 });
 
 
-gulp.watch('./src/methods.ts', ['default']);
+gulp.watch('./src/*.ts', ['default']);

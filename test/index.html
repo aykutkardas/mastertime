@@ -5,23 +5,21 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="../dist/methods-min.js"></script>
+    <script src="../dist/index-min.js"></script>
 </head>
 <body>
     <div class="timer" mtName="test" mtStart="45" mtOnStart="console.log('started timer!')"></div>
     <script>
-        var a = dateCompletion("15:38:00");
-        var b = dateCompletion("22.11.1996");
 
-        a = dateFormatTransform(a);
-        b = dateFormatTransform(b);
+        var m = new MT;
 
-        var c = getTimeDiff(a, b);
+        var firsDate   = m.dateFormatTransform(m.dateCompletion("00:05:00"));
+        var secondDate = m.dateFormatTransform(m.dateCompletion("10.07.2009"));
 
-        var d = htmlSelecting(document.querySelector('.timer'));
-        console.log(d = htmlSelectingFormatter(d));
+        var diff = m.getTimeDiff(firsDate, secondDate);
 
-        d.mtOnStart();
+        console.log(m.msToCustom(diff, "Y:M:s"))
+
 
     </script>
 </body>
