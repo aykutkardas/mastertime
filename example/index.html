@@ -16,42 +16,7 @@
     <script>
 
         var MT = new MasterTime;
-        var htmlObj = MT.htmlSelectFormatter(
-            MT.htmlSelect(
-                document.querySelector('.timer')
-            )
-        );
-        MT.addTimer(htmlObj);
-
-        function writeTimer(obj){
-            obj.mtStart+=99;
-            var custom = MT.msToCustom(obj.mtStart, 'h:m:s:u');
-            obj.mtTemplate = `
-            [<div>
-                <b>{h}</b>
-                <span>hour</span>
-            </div>]
-            [<div>
-                <b>{m}</b>
-                <span>minute</span>
-            </div>]
-            <div>
-                <b>{s}</b>
-                <span>second</span>
-            </div>
-            <div>
-                /[{u}/]
-                <span>miliseconds</span>
-            </div>
-            
-            `
-            var result = MT.templateApply(obj.mtTemplate, custom, {leftPad: 'm:s'});
-            obj.mtTarget.innerHTML = result;
-        }
-
-        setInterval(() => {writeTimer(MT.storage[0][0])}, 99)
-
-        console.log(MT.storage);
+        MT.build('.timer').run();
 
     </script>
 </body>

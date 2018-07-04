@@ -1,5 +1,6 @@
 var MasterTime = /** @class */ (function () {
     function MasterTime() {
+        this.activeGroupIndex = false;
         this.storage = [];
         this.regexStorage = {
             fullDateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})\ ([\d]{2}\:[\d]{2}\:[\d]{2})/,
@@ -230,7 +231,7 @@ var MasterTime = /** @class */ (function () {
         for (i in htmlObj)
             htmlObj[i] = el.getAttribute(i);
         htmlObj.mtTarget = el;
-        return htmlObj;
+        return this.htmlSelectFormatter(htmlObj);
     };
     MasterTime.prototype.htmlSelectFormatter = function (htmlObj) {
         var output = {
@@ -293,15 +294,44 @@ var MasterTime = /** @class */ (function () {
         var groupIndex = this.storage.length;
         if (!this.storage[groupIndex])
             this.storage[groupIndex] = [];
-        if (!Array.isArray(timer))
-            this.storage[groupIndex].push(timer);
         if (Array.isArray(timer)) {
             var i = void 0;
             var len = timer.length;
             for (; i < len; i++)
                 this.storage[groupIndex].push(timer);
         }
-        return this.storage[groupIndex];
+        else {
+            this.storage[groupIndex].push(timer);
+        }
+        return groupIndex;
+    };
+    MasterTime.prototype.machine = function (timeObj) {
+        var custom = this.msToCustom(timeObj.mtStart * 1000, 'h:m:s');
+        timeObj.mtTarget.innerHTML = this.templateApply(custom, '{h}:{m}:{s}', { leftPad: true });
+    };
+    MasterTime.prototype.build = function (selector) {
+        if (!selector || typeof selector !== 'string')
+            return false;
+        var elems = [].concat.apply([], document.querySelectorAll(selector));
+        var i = 0;
+        var len = elems.length;
+        var timeObj = [];
+        for (; i < len; i++) {
+            var obj = this.htmlSelect(elems[i]);
+            if (obj && typeof obj === 'object')
+                timeObj.push(obj);
+        }
+        this.activeGroupIndex = this.addTimer(timeObj);
+        return this;
+    };
+    MasterTime.prototype.run = function () {
+        if (typeof this.activeGroupIndex === 'boolean')
+            return false;
+        var timeObjList = this.storage[this.activeGroupIndex];
+        var i = 0;
+        var len = timeObjList.length;
+        for (; i < len; i++)
+            this.machine(timeObjList[i]);
     };
     return MasterTime;
 }());

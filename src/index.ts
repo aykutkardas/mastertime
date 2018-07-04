@@ -58,11 +58,13 @@ namespace Option {
 
 class MasterTime {
 
-    storage: object[][];
+    activeGroupIndex: number | boolean;
+    storage: HTMLSelect.Timer[][];
     regexStorage: RegexStorage;
 
     constructor() {
 
+        this.activeGroupIndex = false;
         this.storage = [];
         this.regexStorage = {
             fullDateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})\ ([\d]{2}\:[\d]{2}\:[\d]{2})/,
@@ -373,7 +375,7 @@ class MasterTime {
     }
 
 
-    htmlSelect(el: HTMLElement): HTMLSelect.Raw | boolean {
+    htmlSelect(el: HTMLElement): HTMLSelect.Format | boolean {
         if(typeof el !== 'object')
             return false;
     
@@ -399,7 +401,7 @@ class MasterTime {
     
         htmlObj.mtTarget = el;
         
-        return htmlObj;
+        return this.htmlSelectFormatter(htmlObj);
     }
 
 
@@ -475,7 +477,7 @@ class MasterTime {
     }
 
 
-    addTimer(timer: HTMLSelect.Timer | HTMLSelect.Timer[]): object[] | boolean {
+    addTimer(timer: HTMLSelect.Timer | HTMLSelect.Timer[]): number | boolean {
 
         if(!timer)
             return false;
@@ -485,19 +487,62 @@ class MasterTime {
         if(!this.storage[groupIndex])
             this.storage[groupIndex] = [];
         
-        if(!Array.isArray(timer))
-            this.storage[groupIndex].push(timer);
-
         if(Array.isArray(timer)) {
             let i: number;
             let len: number = timer.length;
             for(; i < len; i++)
                 this.storage[groupIndex].push(timer);
+        } else {
+            this.storage[groupIndex].push(timer);
         }
 
-        return this.storage[groupIndex];
+        return groupIndex;
+    }
+
+    machine(timeObj: HTMLSelect.Timer) {
+
+        let custom = this.msToCustom(timeObj.mtStart * 1000, 'h:m:s');
+        
+        if(custom && typeof custom === 'object')
+            timeObj.mtTarget.innerHTML = '' + (this.templateApply('{h}:{m}:{s}', custom,  {leftPad: true}));
 
     }
-    
+
+    build(selector: string) {
+        
+        if(!selector || typeof selector !== 'string')
+            return false;
+
+        let elems: HTMLElement[] = [].concat(...document.querySelectorAll(selector));
+
+        let i: number = 0;
+        let len: number = elems.length;
+        let timeObj:HTMLSelect.Timer[] = [];
+
+        for(; i < len; i++) {
+            var obj = this.htmlSelect(elems[i]);
+
+            if(obj && typeof obj === 'object')
+                timeObj.push(obj);
+        }
+
+        this.activeGroupIndex = this.addTimer(timeObj);
+        return this;        
+    }
+
+    run() {
+        if(typeof this.activeGroupIndex === 'boolean')
+            return false;
+
+        let timeObjList: HTMLSelect.Timer[] = this.storage[this.activeGroupIndex];
+        let i: number = 0;
+        let len: number = timeObjList.length;
+        
+        for(; i < len; i++)
+            this.machine(timeObjList[i]);
+    }
+
+
+
 
 }
