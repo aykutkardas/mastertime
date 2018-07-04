@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="../dist/index-min.js"></script>
+</head>
+<body>
+    <div 
+        class="timer" 
+        mtName="test" 
+        mtStart="55890" 
+        mtOnStart="console.log('started timer!')"></div>
+    <script>
+
+        var MT = new MasterTime;
+        var htmlObj = MT.htmlSelectFormatter(
+            MT.htmlSelect(
+                document.querySelector('.timer')
+            )
+        );
+        MT.addTimer(htmlObj);
+
+        function writeTimer(obj){
+            obj.mtStart+=99;
+            var custom = MT.msToCustom(obj.mtStart, 'h:m:s:u');
+            obj.mtTemplate = `
+            [<div>
+                <b>{h}</b>
+                <span>hour</span>
+            </div>]
+            [<div>
+                <b>{m}</b>
+                <span>minute</span>
+            </div>]
+            <div>
+                <b>{s}</b>
+                <span>second</span>
+            </div>
+            <div>
+                /[{u}/]
+                <span>miliseconds</span>
+            </div>
+            
+            `
+            var result = MT.templateApply(obj.mtTemplate, custom, {leftPad: 'm:s'});
+            obj.mtTarget.innerHTML = result;
+        }
+
+        setInterval(() => {writeTimer(MT.storage[0][0])}, 99)
+
+        console.log(MT.storage);
+
+    </script>
+</body>
+</html>
