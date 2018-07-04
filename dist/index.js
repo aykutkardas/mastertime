@@ -1,34 +1,34 @@
-;
-var MT = /** @class */ (function () {
-    function MT(x) {
+var MasterTime = /** @class */ (function () {
+    function MasterTime() {
+        this.storage = [];
         this.regexStorage = {
             fullDateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})\ ([\d]{2}\:[\d]{2}\:[\d]{2})/,
             dateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})/,
             timeRegex: /([\d]{2}\:[\d]{2}\:[\d]{2})/
         };
     }
-    MT.prototype.msToSecond = function (ms) {
+    MasterTime.prototype.msToSecond = function (ms) {
         return Math.floor(ms / 1000);
     };
-    MT.prototype.msToMinute = function (ms) {
+    MasterTime.prototype.msToMinute = function (ms) {
         return Math.floor(ms / 1000 / 60);
     };
-    MT.prototype.msToHour = function (ms) {
+    MasterTime.prototype.msToHour = function (ms) {
         return Math.floor(ms / 1000 / 60 / 60);
     };
-    MT.prototype.msToDay = function (ms) {
+    MasterTime.prototype.msToDay = function (ms) {
         return Math.floor(ms / 1000 / 60 / 60 / 24);
     };
-    MT.prototype.msToWeek = function (ms) {
+    MasterTime.prototype.msToWeek = function (ms) {
         return Math.floor(ms / 1000 / 60 / 60 / 24 / 7);
     };
-    MT.prototype.msToMonth = function (ms) {
+    MasterTime.prototype.msToMonth = function (ms) {
         return Math.floor(ms / 1000 / 60 / 60 / 24 / 7 / 4);
     };
-    MT.prototype.msToYear = function (ms) {
+    MasterTime.prototype.msToYear = function (ms) {
         return Math.floor(ms / 1000 / 60 / 60 / 24 / 7 / 4 / 12);
     };
-    MT.prototype.dateCompletion = function (inputDate) {
+    MasterTime.prototype.dateCompletion = function (inputDate) {
         var fullDateRegexResult = this.regexStorage.fullDateRegex.exec(inputDate);
         if (fullDateRegexResult)
             return fullDateRegexResult[0];
@@ -40,7 +40,7 @@ var MT = /** @class */ (function () {
             return (new Date()).toLocaleDateString() + ' ' + timeRegexResult[0];
         return false;
     };
-    MT.prototype.dateFormatTransform = function (inputDate) {
+    MasterTime.prototype.dateFormatTransform = function (inputDate) {
         if (!this.regexStorage.fullDateRegex.exec(inputDate))
             return false;
         var month = [
@@ -64,7 +64,7 @@ var MT = /** @class */ (function () {
         activeMonth = month[Number(date[1]) - 1];
         return activeMonth + " " + date[0] + ", " + date[2] + " " + explodeDate[1];
     };
-    MT.prototype.getTimeDiff = function (firstTime, secondTime) {
+    MasterTime.prototype.getTimeDiff = function (firstTime, secondTime) {
         var firstTimeMs, secondTimeMs;
         if (!firstTime)
             return false;
@@ -75,7 +75,7 @@ var MT = /** @class */ (function () {
             secondTimeMs = (new Date(secondTime)).getTime();
         return firstTimeMs - secondTimeMs;
     };
-    MT.prototype.msToCustom = function (ms, option) {
+    MasterTime.prototype.msToCustom = function (ms, option) {
         if (!ms)
             return false;
         var oneYearMs = 31556926000, oneMonthMs = 2629743830, oneWeekMs = 604800000, oneDayMs = 86400000, oneHourMs = 3600000, oneMinuteMs = 60000, oneSecondMs = 1000;
@@ -108,7 +108,7 @@ var MT = /** @class */ (function () {
         }
         return output;
     };
-    MT.prototype.dateIsGreater = function (firstTime, secondTime) {
+    MasterTime.prototype.dateIsGreater = function (firstTime, secondTime) {
         if (!firstTime || !secondTime)
             return false;
         var firstTimeTransform = this.dateFormatTransform(firstTime);
@@ -123,7 +123,7 @@ var MT = /** @class */ (function () {
             return true;
         return false;
     };
-    MT.prototype.dateIsLess = function (firstTime, secondTime) {
+    MasterTime.prototype.dateIsLess = function (firstTime, secondTime) {
         if (!firstTime || !secondTime)
             return false;
         var firstTimeTransform = this.dateFormatTransform(firstTime);
@@ -138,7 +138,7 @@ var MT = /** @class */ (function () {
             return true;
         return false;
     };
-    MT.prototype.dateIsEqual = function (firstTime, secondTime) {
+    MasterTime.prototype.dateIsEqual = function (firstTime, secondTime) {
         if (!firstTime || !secondTime)
             return false;
         var firstTimeTransform = this.dateFormatTransform(firstTime);
@@ -153,7 +153,7 @@ var MT = /** @class */ (function () {
             return true;
         return false;
     };
-    MT.prototype.leftPad = function (timeObj, option) {
+    MasterTime.prototype.leftPad = function (timeObj, option) {
         if (!option)
             return timeObj;
         var selectedOption;
@@ -169,45 +169,47 @@ var MT = /** @class */ (function () {
         Object.assign(timeObj, newTimeObj);
         return timeObj;
     };
-    MT.prototype.formatApply = function (format, timeObj, option) {
-        if (!format)
+    MasterTime.prototype.templateApply = function (template, timeObj, option) {
+        if (!template)
             return false;
+        // passive
         var bracket = '\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])';
-        var bracketDbl = '\\/\\[(\\[[^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])\\]';
-        var bracketInner = '[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\/]*)\\]';
+        var bracketPass = '\\/\\[(\\[[^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])\\]';
+        // const bracketInner: string = '[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\/]*)\\]';
+        var bracketInner = '[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[]*)[^\\/]\\]';
         if (option && option.leftPad)
             timeObj = this.leftPad(timeObj, option.leftPad);
-        var i, bracketRegex, bracketDblRegex, bracketInnerRegex, bracketRegexMatch, bracketDblRegexMatch, bracketInnerRegexMatch;
+        var i, bracketRegex, bracketPassRegex, bracketInnerRegex, bracketRegexMatch, bracketPassRegexMatch, bracketInnerRegexMatch;
         for (i in timeObj) {
-            bracketInnerRegex = new RegExp(bracketInner.replace('.', i));
-            bracketInnerRegexMatch = bracketInnerRegex.exec(format);
+            bracketInnerRegex = new RegExp(bracketInner.replace('.', i), 'gmi');
+            bracketInnerRegexMatch = bracketInnerRegex.exec(template);
             if (bracketInnerRegexMatch) {
                 if (!parseInt(timeObj[i]))
-                    format = format.replace(bracketInnerRegex, '');
+                    template = template.replace(bracketInnerRegex, '');
                 else
-                    format = format.replace(bracketInnerRegex, "$1" + timeObj[i] + "$3");
+                    template = template.replace(bracketInnerRegex, "$1" + timeObj[i] + "$3");
                 continue;
             }
-            bracketRegex = new RegExp(bracket.replace('.', i));
-            bracketRegexMatch = bracketRegex.exec(format);
+            bracketRegex = new RegExp(bracket.replace('.', i), 'gmi');
+            bracketRegexMatch = bracketRegex.exec(template);
             if (bracketRegexMatch) {
+                template = template.replace(bracketRegex, "$1" + timeObj[i] + "$3$4");
+                continue;
+            }
+            bracketPassRegex = new RegExp(bracketPass.replace(".", i), 'gmi');
+            bracketPassRegexMatch = bracketPassRegex.exec(template);
+            if (bracketPassRegexMatch) {
                 if (!parseInt(timeObj[i]))
-                    format = format.replace(bracketRegex, '');
+                    template = template.replace(bracketPassRegex, '');
                 else
-                    format = format.replace(bracketRegex, "$1" + timeObj[i] + "$3$4");
+                    template = template.replace(bracketPassRegex, "$1" + timeObj[i] + "$3$4");
                 continue;
             }
-            bracketDblRegex = new RegExp(bracketDbl.replace(".", i));
-            bracketDblRegexMatch = bracketDblRegex.exec(format);
-            if (bracketDblRegexMatch) {
-                format = format.replace(bracketDblRegex, "$1" + timeObj[i] + "$3$4");
-                continue;
-            }
-            format = format.replace('{' + i + '}', timeObj[i]);
+            template = template.replace('{' + i + '}', timeObj[i]);
         }
-        return format;
+        return template;
     };
-    MT.prototype.htmlSelect = function (el) {
+    MasterTime.prototype.htmlSelect = function (el) {
         if (typeof el !== 'object')
             return false;
         var htmlObj = {
@@ -221,14 +223,16 @@ var MT = /** @class */ (function () {
             'mtName': null,
             'mtTemplate': null,
             'mtWay': null,
-            'mtAgo': null
+            'mtAgo': null,
+            'mtTarget': null
         };
         var i;
         for (i in htmlObj)
             htmlObj[i] = el.getAttribute(i);
+        htmlObj.mtTarget = el;
         return htmlObj;
     };
-    MT.prototype.htmlSelectFormatter = function (htmlObj) {
+    MasterTime.prototype.htmlSelectFormatter = function (htmlObj) {
         var output = {
             'mtStartDate': null,
             'mtEndDate': null,
@@ -240,27 +244,29 @@ var MT = /** @class */ (function () {
             'mtName': null,
             'mtTemplate': null,
             'mtWay': null,
-            'mtAgo': null
+            'mtAgo': null,
+            'mtTarget': null
         };
         output.mtStartDate = htmlObj.mtStartDate;
         output.mtEndDate = htmlObj.mtEndDate;
         output.mtName = htmlObj.mtName;
         output.mtTemplate = htmlObj.mtTemplate;
         output.mtWay = htmlObj.mtWay;
+        output.mtTarget = htmlObj.mtTarget;
         if (htmlObj.mtStart)
             output.mtStart = parseInt(htmlObj.mtStart);
         if (htmlObj.mtEnd)
             output.mtEnd = parseInt(htmlObj.mtEnd);
         if (htmlObj.mtOnStart)
-            output.mtOnStart = new Function(htmlObj.mtOnStart);
+            output.mtOnStart = new Function('$MT', htmlObj.mtOnStart);
         if (htmlObj.mtOnInterval)
-            output.mtOnInterval = new Function(htmlObj.mtOnInterval);
+            output.mtOnInterval = new Function('$MT', htmlObj.mtOnInterval);
         if (htmlObj.mtOnEnd)
             output.mtOnEnd = new Function(htmlObj.mtOnEnd);
         output.mtAgo = Boolean(htmlObj.mtEnd);
         return output;
     };
-    MT.prototype.htmlRemoveAttr = function (el) {
+    MasterTime.prototype.htmlRemoveAttr = function (el) {
         if (!el)
             return false;
         var attrList = [
@@ -281,5 +287,21 @@ var MT = /** @class */ (function () {
             el.removeAttribute(attrList[i]);
         return true;
     };
-    return MT;
+    MasterTime.prototype.addTimer = function (timer) {
+        if (!timer)
+            return false;
+        var groupIndex = this.storage.length;
+        if (!this.storage[groupIndex])
+            this.storage[groupIndex] = [];
+        if (!Array.isArray(timer))
+            this.storage[groupIndex].push(timer);
+        if (Array.isArray(timer)) {
+            var i = void 0;
+            var len = timer.length;
+            for (; i < len; i++)
+                this.storage[groupIndex].push(timer);
+        }
+        return this.storage[groupIndex];
+    };
+    return MasterTime;
 }());

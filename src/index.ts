@@ -11,7 +11,7 @@ interface TimeObj {
     'm'?: number | string,
     's'?: number | string,
     'u'?: number | string
-};
+}
 
 namespace HTMLSelect {
     export interface Raw {
@@ -25,7 +25,8 @@ namespace HTMLSelect {
         'mtName':       string | null,
         'mtTemplate':   string | null,
         'mtWay':        string | null,
-        'mtAgo':        string | null
+        'mtAgo':        string | null,
+        'mtTarget':     HTMLElement | null,   
     }
 
     export interface Format {
@@ -39,9 +40,15 @@ namespace HTMLSelect {
         'mtName':       string   | null,
         'mtTemplate':   string   | null,
         'mtWay':        string   | null,
-        'mtAgo':        boolean  | null
+        'mtAgo':        boolean  | null,
+        'mtTarget':     HTMLElement | null
+    }
+
+    export interface Timer extends Format {
+        [name: string]: any
     }
 }
+
 namespace Option {
     export interface Format {
         leftPad: boolean | string
@@ -49,11 +56,14 @@ namespace Option {
 }
 
 
-class MT {
+class MasterTime {
 
+    storage: object[][];
     regexStorage: RegexStorage;
 
-    constructor(x: string) {
+    constructor() {
+
+        this.storage = [];
         this.regexStorage = {
             fullDateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})\ ([\d]{2}\:[\d]{2}\:[\d]{2})/,
             dateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})/,
@@ -305,59 +315,60 @@ class MT {
     
     }
 
-    formatApply(format: string, timeObj: TimeObj, option: Option.Format): string | boolean {
+    templateApply(template: string, timeObj: TimeObj, option: Option.Format): string | boolean {
 
-        if(!format)
+        if(!template)
             return false;
-    
+            
+        // passive
         const bracket:      string = '\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])';
-        const bracketDbl:   string = '\\/\\[(\\[[^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])\\]';
-        const bracketInner: string = '[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\/]*)\\]';
+        const bracketPass:  string = '\\/\\[(\\[[^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])\\]';
+        // const bracketInner: string = '[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\/]*)\\]';
+        const bracketInner: string = '[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[]*)[^\\/]\\]';
     
         if(option && option.leftPad)
             timeObj = this.leftPad(timeObj, option.leftPad);
     
         let i: string,
             bracketRegex: RegExp,
-            bracketDblRegex: RegExp,
+            bracketPassRegex: RegExp,
             bracketInnerRegex: RegExp,
             bracketRegexMatch: RegExpExecArray,
-            bracketDblRegexMatch: RegExpExecArray,
+            bracketPassRegexMatch: RegExpExecArray,
             bracketInnerRegexMatch: RegExpExecArray;
     
         for(i in timeObj) {
-    
-            bracketInnerRegex = new RegExp(bracketInner.replace('.', i));
-            bracketInnerRegexMatch = bracketInnerRegex.exec(format);
+            bracketInnerRegex = new RegExp(bracketInner.replace('.', i), 'gmi');
+            bracketInnerRegexMatch = bracketInnerRegex.exec(template);
             if(bracketInnerRegexMatch) {
                 if(!parseInt(timeObj[i]))
-                    format = format.replace(bracketInnerRegex, '');
+                    template = template.replace(bracketInnerRegex, '');
                 else
-                    format = format.replace(bracketInnerRegex, `$1${timeObj[i]}$3`);
+                    template = template.replace(bracketInnerRegex, `$1${timeObj[i]}$3`);
                 continue;
             }
     
-            bracketRegex = new RegExp(bracket.replace('.', i));
-            bracketRegexMatch = bracketRegex.exec(format);
+            bracketRegex = new RegExp(bracket.replace('.', i), 'gmi');
+            bracketRegexMatch = bracketRegex.exec(template);
             if (bracketRegexMatch) {
+                template = template.replace(bracketRegex, `$1${timeObj[i]}$3$4`);
+                continue;
+            }
+    
+            bracketPassRegex = new RegExp(bracketPass.replace(".", i), 'gmi');
+            bracketPassRegexMatch = bracketPassRegex.exec(template);
+            if (bracketPassRegexMatch) {
                 if(!parseInt(timeObj[i]))
-                    format = format.replace(bracketRegex, '');
+                    template = template.replace(bracketPassRegex, '');
                 else
-                    format = format.replace(bracketRegex, `$1${timeObj[i]}$3$4`);
+                    template = template.replace(bracketPassRegex, `$1${timeObj[i]}$3$4`);
                 continue;
             }
     
-            bracketDblRegex = new RegExp(bracketDbl.replace(".", i));
-            bracketDblRegexMatch = bracketDblRegex.exec(format);
-            if (bracketDblRegexMatch) {
-                format = format.replace(bracketDblRegex, `$1${timeObj[i]}$3$4`);
-                continue;
-            }
-    
-            format = format.replace('{'+i+'}', timeObj[i]);
+            template = template.replace('{'+i+'}', timeObj[i]);
         }
     
-        return format;
+        return template;
     
     }
 
@@ -377,7 +388,8 @@ class MT {
             'mtName': null,
             'mtTemplate': null,
             'mtWay': null,
-            'mtAgo': null
+            'mtAgo': null,
+            'mtTarget': null
         };
     
         let i: string;
@@ -385,6 +397,8 @@ class MT {
         for(i in htmlObj)
             htmlObj[i] = el.getAttribute(i);
     
+        htmlObj.mtTarget = el;
+        
         return htmlObj;
     }
 
@@ -402,7 +416,8 @@ class MT {
             'mtName': null,
             'mtTemplate': null,
             'mtWay': null,
-            'mtAgo': null
+            'mtAgo': null,
+            'mtTarget': null
         };
     
         output.mtStartDate = htmlObj.mtStartDate;
@@ -410,6 +425,7 @@ class MT {
         output.mtName      = htmlObj.mtName;
         output.mtTemplate  = htmlObj.mtTemplate;
         output.mtWay       = htmlObj.mtWay;
+        output.mtTarget    = htmlObj.mtTarget;
     
         if(htmlObj.mtStart)
             output.mtStart = parseInt(htmlObj.mtStart);
@@ -418,10 +434,10 @@ class MT {
             output.mtEnd = parseInt(htmlObj.mtEnd);
     
         if(htmlObj.mtOnStart)
-            output.mtOnStart = new Function(htmlObj.mtOnStart);
+            output.mtOnStart = new Function('$MT', htmlObj.mtOnStart);
             
         if(htmlObj.mtOnInterval)
-            output.mtOnInterval = new Function(htmlObj.mtOnInterval);
+            output.mtOnInterval = new Function('$MT', htmlObj.mtOnInterval);
             
         if(htmlObj.mtOnEnd)
             output.mtOnEnd= new Function(htmlObj.mtOnEnd);
@@ -457,5 +473,31 @@ class MT {
 
         return true;
     }
+
+
+    addTimer(timer: HTMLSelect.Timer | HTMLSelect.Timer[]): object[] | boolean {
+
+        if(!timer)
+            return false;
+
+        let groupIndex = this.storage.length;
+
+        if(!this.storage[groupIndex])
+            this.storage[groupIndex] = [];
+        
+        if(!Array.isArray(timer))
+            this.storage[groupIndex].push(timer);
+
+        if(Array.isArray(timer)) {
+            let i: number;
+            let len: number = timer.length;
+            for(; i < len; i++)
+                this.storage[groupIndex].push(timer);
+        }
+
+        return this.storage[groupIndex];
+
+    }
+    
 
 }
