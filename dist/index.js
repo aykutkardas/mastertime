@@ -2,47 +2,27 @@ var MasterTime = /** @class */ (function () {
     function MasterTime() {
         this.activeGroupIndex = false;
         this.storage = [];
-        this.regexStorage = {
+        var _regexStorage = {
             fullDateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})\ ([\d]{2}\:[\d]{2}\:[\d]{2})/,
             dateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})/,
             timeRegex: /([\d]{2}\:[\d]{2}\:[\d]{2})/
         };
+        this.getRegex = function () { return _regexStorage; };
     }
-    MasterTime.prototype.msToSecond = function (ms) {
-        return Math.floor(ms / 1000);
-    };
-    MasterTime.prototype.msToMinute = function (ms) {
-        return Math.floor(ms / 1000 / 60);
-    };
-    MasterTime.prototype.msToHour = function (ms) {
-        return Math.floor(ms / 1000 / 60 / 60);
-    };
-    MasterTime.prototype.msToDay = function (ms) {
-        return Math.floor(ms / 1000 / 60 / 60 / 24);
-    };
-    MasterTime.prototype.msToWeek = function (ms) {
-        return Math.floor(ms / 1000 / 60 / 60 / 24 / 7);
-    };
-    MasterTime.prototype.msToMonth = function (ms) {
-        return Math.floor(ms / 1000 / 60 / 60 / 24 / 7 / 4);
-    };
-    MasterTime.prototype.msToYear = function (ms) {
-        return Math.floor(ms / 1000 / 60 / 60 / 24 / 7 / 4 / 12);
-    };
     MasterTime.prototype.dateCompletion = function (inputDate) {
-        var fullDateRegexResult = this.regexStorage.fullDateRegex.exec(inputDate);
+        var fullDateRegexResult = this.getRegex().fullDateRegex.exec(inputDate);
         if (fullDateRegexResult)
             return fullDateRegexResult[0];
-        var dateRegexResult = this.regexStorage.dateRegex.exec(inputDate);
+        var dateRegexResult = this.getRegex().dateRegex.exec(inputDate);
         if (dateRegexResult)
             return dateRegexResult[0] + ' 00:00:00';
-        var timeRegexResult = this.regexStorage.timeRegex.exec(inputDate);
+        var timeRegexResult = this.getRegex().timeRegex.exec(inputDate);
         if (timeRegexResult)
             return (new Date()).toLocaleDateString() + ' ' + timeRegexResult[0];
         return false;
     };
     MasterTime.prototype.dateFormatTransform = function (inputDate) {
-        if (!this.regexStorage.fullDateRegex.exec(inputDate))
+        if (!this.getRegex().fullDateRegex.exec(inputDate))
             return false;
         var month = [
             'January',
@@ -214,8 +194,7 @@ var MasterTime = /** @class */ (function () {
         if (typeof el !== 'object')
             return false;
         var htmlObj = {
-            'mtStartDate': null,
-            'mtEndDate': null,
+            'mtDate': null,
             'mtStart': null,
             'mtEnd': null,
             'mtOnStart': null,
@@ -235,8 +214,7 @@ var MasterTime = /** @class */ (function () {
     };
     MasterTime.prototype.htmlSelectFormatter = function (htmlObj) {
         var output = {
-            'mtStartDate': null,
-            'mtEndDate': null,
+            'mtDate': null,
             'mtStart': null,
             'mtEnd': null,
             'mtOnStart': null,
@@ -248,8 +226,7 @@ var MasterTime = /** @class */ (function () {
             'mtAgo': null,
             'mtTarget': null
         };
-        output.mtStartDate = htmlObj.mtStartDate;
-        output.mtEndDate = htmlObj.mtEndDate;
+        output.mtDate = htmlObj.mtDate;
         output.mtName = htmlObj.mtName;
         output.mtTemplate = htmlObj.mtTemplate;
         output.mtWay = htmlObj.mtWay;
@@ -271,8 +248,7 @@ var MasterTime = /** @class */ (function () {
         if (!el)
             return false;
         var attrList = [
-            'mtStartDate',
-            'mtEndDate',
+            'mtDate',
             'mtStart',
             'mtEnd',
             'mtOnStart',
@@ -288,6 +264,51 @@ var MasterTime = /** @class */ (function () {
             el.removeAttribute(attrList[i]);
         return true;
     };
+    MasterTime.prototype.craft = function (timer) {
+        if (!timer)
+            return false;
+        if (timer.mtStart) {
+            if (timer.mtEnd) {
+                if (timer.mtStart > timer.mtEnd)
+                    timer.mtWay = 'down';
+                else if (timer.mtStart < timer.mtEnd)
+                    timer.mtWay = 'up';
+                else
+                    timer.mtWay = (timer.mtStart > 0) ? 'down' : 'up';
+            }
+            else {
+                if (!timer.mtWay) {
+                    timer.mtEnd = (timer.mtStart > 0) ? 0 : Infinity;
+                    timer.mtWay = (timer.mtStart > 0) ? 'down' : 'up';
+                }
+            }
+        }
+        else if (timer.mtEnd) {
+            timer.mtStart = 0;
+            timer.mtWay = (timer.mtEnd > 0) ? 'up' : 'down';
+        }
+        else if (timer.mtDate) {
+            var selectDate = this.dateCompletion(timer.mtDate);
+            var diff = void 0;
+            if (typeof selectDate === 'string') {
+                selectDate = this.dateFormatTransform(selectDate);
+                if (typeof selectDate === 'string') {
+                    diff = this.getTimeDiff(selectDate);
+                    if (typeof diff === 'number')
+                        diff = diff / 1000;
+                }
+            }
+            if (diff > 0) {
+                timer.mtStart = diff;
+                timer.mtWay = 'down';
+            }
+            else {
+                timer.mtStart = -diff;
+                timer.mtWay = 'up';
+            }
+        }
+        return timer;
+    };
     MasterTime.prototype.addTimer = function (timer) {
         if (!timer)
             return false;
@@ -295,24 +316,50 @@ var MasterTime = /** @class */ (function () {
         if (!this.storage[groupIndex])
             this.storage[groupIndex] = [];
         if (Array.isArray(timer)) {
-            var i = void 0;
+            var i = 0;
             var len = timer.length;
-            for (; i < len; i++)
-                this.storage[groupIndex].push(timer);
+            for (; i < len; i++) {
+                var craftTimer = this.craft(timer[i]);
+                if (craftTimer && typeof craftTimer !== 'boolean')
+                    this.storage[groupIndex].push(craftTimer);
+            }
         }
         else {
-            this.storage[groupIndex].push(timer);
+            var craftTimer = this.craft(timer);
+            if (craftTimer && typeof craftTimer !== 'boolean')
+                this.storage[groupIndex].push(timer);
         }
         return groupIndex;
     };
-    MasterTime.prototype.machine = function (timeObj) {
+    MasterTime.prototype.machine = function (groupIndex, index) {
+        var timeObj = this.storage[groupIndex][index];
+        if (!timeObj)
+            return false;
+        if (timeObj.mtStart === timeObj.mtEnd)
+            return false;
+        if (timeObj.mtWay === 'up')
+            timeObj.mtStart++;
+        else
+            timeObj.mtStart--;
         var custom = this.msToCustom(timeObj.mtStart * 1000, 'h:m:s');
-        timeObj.mtTarget.innerHTML = this.templateApply(custom, '{h}:{m}:{s}', { leftPad: true });
+        if (custom &&
+            typeof custom === 'object' &&
+            timeObj.mtTarget &&
+            timeObj.mtTarget.tagName) {
+            var result = this.templateApply('{h}:{m}:{s}', custom, { leftPad: true });
+            if (result && typeof result === 'string')
+                timeObj.mtTarget.innerHTML = result;
+        }
     };
     MasterTime.prototype.build = function (selector) {
         if (!selector || typeof selector !== 'string')
             return false;
-        var elems = [].concat.apply([], document.querySelectorAll(selector));
+        var nodeList = document.querySelectorAll(selector);
+        var elems = [];
+        var j = 0;
+        var nodeLen = nodeList.length;
+        for (; j < nodeLen; j++)
+            elems.push(nodeList[j]);
         var i = 0;
         var len = elems.length;
         var timeObj = [];
@@ -324,14 +371,28 @@ var MasterTime = /** @class */ (function () {
         this.activeGroupIndex = this.addTimer(timeObj);
         return this;
     };
+    MasterTime.prototype.add = function (obj) {
+        this.activeGroupIndex = this.addTimer(obj);
+        return this;
+    };
     MasterTime.prototype.run = function () {
+        var _this = this;
         if (typeof this.activeGroupIndex === 'boolean')
             return false;
         var timeObjList = this.storage[this.activeGroupIndex];
+        var groupIndex = this.activeGroupIndex;
         var i = 0;
         var len = timeObjList.length;
-        for (; i < len; i++)
-            this.machine(timeObjList[i]);
+        var activeObj;
+        var _loop_1 = function () {
+            var index = i;
+            activeObj = timeObjList[index];
+            setInterval(function () { _this.machine(groupIndex, index); }, 1000);
+        };
+        for (; i < len; i++) {
+            _loop_1();
+        }
+        this.activeGroupIndex = false;
     };
     return MasterTime;
 }());

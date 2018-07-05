@@ -5,19 +5,38 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="../dist/index-min.js"></script>
+    <script src="../dist/index.js"></script>
 </head>
 <body>
     <div 
         class="timer" 
         mtName="test" 
-        mtStart="55890" 
-        mtOnStart="console.log('started timer!')"></div>
+        mtStart="35890" 
+        mtOnStart="console.log('started timer!')">a</div>
+    <div 
+        class="timer" 
+        mtName="test" 
+        mtStart="5580090" 
+        mtOnStart="console.log('started timer!')">b</div>
+
+    <div id="timer">c</div>
     <script>
 
+        console.time('test');
         var MT = new MasterTime;
         MT.build('.timer').run();
+        console.timeEnd('test');
 
+        // setTimeout(()=> {
+
+        //     MT.add({
+        //         mtStart: 500,
+        //         mtEnd: 510,
+        //         mtTemplate: '{h} -> {m} -> {s}',
+        //         mtTarget: document.querySelector('div#timer')
+        //     }).run();
+        // }, 1000);
+            
     </script>
 </body>
 </html>

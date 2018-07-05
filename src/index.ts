@@ -15,8 +15,7 @@ interface TimeObj {
 
 namespace HTMLSelect {
     export interface Raw {
-        'mtStartDate':  string | null,
-        'mtEndDate':    string | null,
+        'mtDate':    string | null,
         'mtStart':      string | null,
         'mtEnd':        string | null,
         'mtOnStart':    string | null,
@@ -30,8 +29,7 @@ namespace HTMLSelect {
     }
 
     export interface Format {
-        'mtStartDate':  string   | null,
-        'mtEndDate':    string   | null,
+        'mtDate':    string   | null,
         'mtStart':      number   | null,
         'mtEnd':        number   | null,
         'mtOnStart':    Function | null,
@@ -60,58 +58,31 @@ class MasterTime {
 
     activeGroupIndex: number | boolean;
     storage: HTMLSelect.Timer[][];
-    regexStorage: RegexStorage;
+    getRegex: Function;
 
     constructor() {
 
         this.activeGroupIndex = false;
         this.storage = [];
-        this.regexStorage = {
+        var _regexStorage: RegexStorage = {
             fullDateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})\ ([\d]{2}\:[\d]{2}\:[\d]{2})/,
             dateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})/,
             timeRegex: /([\d]{2}\:[\d]{2}\:[\d]{2})/
         };
-    }
-
-    msToSecond(ms: number): number {
-        return Math.floor(ms / 1000);
-    }
-    
-    msToMinute(ms: number): number {
-        return Math.floor(ms / 1000 / 60);
-    }
-    
-    msToHour(ms: number): number {
-        return Math.floor(ms / 1000 / 60 / 60);
-    }
-    
-    msToDay(ms: number): number {
-        return Math.floor(ms / 1000 / 60 / 60 / 24);
-    }
-    
-    msToWeek(ms: number): number {
-        return Math.floor(ms / 1000 / 60 / 60 / 24 / 7);
-    }
-    
-    msToMonth(ms: number): number {
-        return Math.floor(ms / 1000  / 60 / 60 / 24 / 7 / 4);
-    }
-    
-    msToYear(ms: number): number {
-        return Math.floor(ms / 1000 / 60 / 60 / 24 / 7 / 4 / 12);
+        this.getRegex = ()=> _regexStorage;
     }
 
     dateCompletion(inputDate: string): string | boolean {
 
-        let fullDateRegexResult: RegExpExecArray = this.regexStorage.fullDateRegex.exec(inputDate);
+        let fullDateRegexResult: RegExpExecArray = this.getRegex().fullDateRegex.exec(inputDate);
         if(fullDateRegexResult)
             return fullDateRegexResult[0];
         
-        let dateRegexResult: RegExpExecArray = this.regexStorage.dateRegex.exec(inputDate);
+        let dateRegexResult: RegExpExecArray = this.getRegex().dateRegex.exec(inputDate);
         if(dateRegexResult)
             return dateRegexResult[0] + ' 00:00:00';
     
-        let timeRegexResult: RegExpExecArray = this.regexStorage.timeRegex.exec(inputDate);
+        let timeRegexResult: RegExpExecArray = this.getRegex().timeRegex.exec(inputDate);
         if(timeRegexResult)
             return (new Date()).toLocaleDateString() + ' ' + timeRegexResult[0];
     
@@ -120,7 +91,7 @@ class MasterTime {
 
     dateFormatTransform(inputDate: string): string | boolean {
 
-        if(!this.regexStorage.fullDateRegex.exec(inputDate))
+        if(!this.getRegex().fullDateRegex.exec(inputDate))
             return false;
     
         const month: string[] = [
@@ -152,7 +123,7 @@ class MasterTime {
     
     }
 
-    getTimeDiff(firstTime: string, secondTime: string): number | boolean {
+    getTimeDiff(firstTime: string, secondTime?: string): number | boolean {
         let firstTimeMs: number, 
             secondTimeMs: number;
         
@@ -380,8 +351,7 @@ class MasterTime {
             return false;
     
         const htmlObj: HTMLSelect.Raw = {
-            'mtStartDate': null,
-            'mtEndDate': null,
+            'mtDate': null,
             'mtStart': null,
             'mtEnd': null,
             'mtOnStart': null,
@@ -408,8 +378,7 @@ class MasterTime {
     htmlSelectFormatter(htmlObj: HTMLSelect.Raw): HTMLSelect.Format {
     
         const output: HTMLSelect.Format = {
-            'mtStartDate': null,
-            'mtEndDate': null,
+            'mtDate': null,
             'mtStart': null,
             'mtEnd': null,
             'mtOnStart': null,
@@ -422,8 +391,7 @@ class MasterTime {
             'mtTarget': null
         };
     
-        output.mtStartDate = htmlObj.mtStartDate;
-        output.mtEndDate   = htmlObj.mtEndDate;
+        output.mtDate      = htmlObj.mtDate;
         output.mtName      = htmlObj.mtName;
         output.mtTemplate  = htmlObj.mtTemplate;
         output.mtWay       = htmlObj.mtWay;
@@ -455,8 +423,7 @@ class MasterTime {
             return false;
 
         const attrList: string[] = [
-            'mtStartDate',
-            'mtEndDate',
+            'mtDate',
             'mtStart',
             'mtEnd',
             'mtOnStart',
@@ -476,6 +443,49 @@ class MasterTime {
         return true;
     }
 
+    craft(timer: HTMLSelect.Timer): HTMLSelect.Timer | boolean {
+        if(!timer)
+            return false;
+
+        if(timer.mtStart) {
+            if(timer.mtEnd) {
+                if(timer.mtStart > timer.mtEnd)
+                    timer.mtWay = 'down';
+                else if(timer.mtStart < timer.mtEnd)
+                    timer.mtWay = 'up';
+                else
+                    timer.mtWay = (timer.mtStart > 0) ? 'down' : 'up';
+            } else {
+                if(!timer.mtWay){
+                    timer.mtEnd = (timer.mtStart > 0) ? 0 : Infinity;
+                    timer.mtWay = (timer.mtStart > 0) ? 'down' : 'up';
+                }
+            }
+        } else if(timer.mtEnd) {
+            timer.mtStart = 0;
+            timer.mtWay = (timer.mtEnd > 0) ? 'up' : 'down';
+        } else if(timer.mtDate) {
+            let selectDate = this.dateCompletion(timer.mtDate);
+            let diff;
+            if(typeof selectDate === 'string') {
+                selectDate = this.dateFormatTransform(selectDate);
+                if(typeof selectDate === 'string') {
+                    diff = this.getTimeDiff(selectDate);
+                    if(typeof diff === 'number')
+                        diff = diff / 1000;
+                }
+            }
+            if(diff > 0) {
+                timer.mtStart = diff;
+                timer.mtWay = 'down';
+            } else {
+                timer.mtStart = -diff;
+                timer.mtWay = 'up';
+            }
+        }
+        return timer;
+    }
+
 
     addTimer(timer: HTMLSelect.Timer | HTMLSelect.Timer[]): number | boolean {
 
@@ -488,23 +498,45 @@ class MasterTime {
             this.storage[groupIndex] = [];
         
         if(Array.isArray(timer)) {
-            let i: number;
+            let i: number = 0;
             let len: number = timer.length;
-            for(; i < len; i++)
-                this.storage[groupIndex].push(timer);
+            for(; i < len; i++){
+                let craftTimer = this.craft(timer[i]);
+                if(craftTimer && typeof craftTimer !== 'boolean')
+                    this.storage[groupIndex].push(craftTimer);
+            }
         } else {
-            this.storage[groupIndex].push(timer);
+            let craftTimer = this.craft(timer);
+            if(craftTimer && typeof craftTimer !== 'boolean')
+                this.storage[groupIndex].push(timer);
         }
-
         return groupIndex;
     }
 
-    machine(timeObj: HTMLSelect.Timer) {
+    machine(groupIndex, index) {
+        let timeObj = this.storage[groupIndex][index];
+        if(!timeObj)
+            return false;
+        
+        if(timeObj.mtStart === timeObj.mtEnd)
+            return false;
+
+        if(timeObj.mtWay === 'up')
+            timeObj.mtStart++;
+        else
+            timeObj.mtStart--;
 
         let custom = this.msToCustom(timeObj.mtStart * 1000, 'h:m:s');
-        
-        if(custom && typeof custom === 'object')
-            timeObj.mtTarget.innerHTML = '' + (this.templateApply('{h}:{m}:{s}', custom,  {leftPad: true}));
+        if(
+            custom && 
+            typeof custom === 'object' && 
+            timeObj.mtTarget && 
+            timeObj.mtTarget.tagName
+         ){
+             let result = this.templateApply('{h}:{m}:{s}', custom,  {leftPad: true});
+             if(result && typeof result === 'string')
+                timeObj.mtTarget.innerHTML = result;
+        }
 
     }
 
@@ -513,7 +545,13 @@ class MasterTime {
         if(!selector || typeof selector !== 'string')
             return false;
 
-        let elems: HTMLElement[] = [].concat(...document.querySelectorAll(selector));
+        let nodeList = document.querySelectorAll(selector);
+        let elems = [];
+        let j: number = 0;
+        let nodeLen: number = nodeList.length;
+        for(; j < nodeLen; j++)
+            elems.push(nodeList[j]);
+
 
         let i: number = 0;
         let len: number = elems.length;
@@ -521,7 +559,6 @@ class MasterTime {
 
         for(; i < len; i++) {
             var obj = this.htmlSelect(elems[i]);
-
             if(obj && typeof obj === 'object')
                 timeObj.push(obj);
         }
@@ -530,16 +567,30 @@ class MasterTime {
         return this;        
     }
 
+    add(obj) {
+        this.activeGroupIndex = this.addTimer(obj)
+        return this;
+    }
+
     run() {
         if(typeof this.activeGroupIndex === 'boolean')
             return false;
 
         let timeObjList: HTMLSelect.Timer[] = this.storage[this.activeGroupIndex];
+        let groupIndex = this.activeGroupIndex;
         let i: number = 0;
         let len: number = timeObjList.length;
-        
-        for(; i < len; i++)
-            this.machine(timeObjList[i]);
+        let activeObj;
+        for(; i < len; i++) {
+            let index = i;
+            activeObj = timeObjList[index];
+            setInterval(
+                ()=>{this.machine(groupIndex, index)},
+                1000
+            )
+        }
+
+        this.activeGroupIndex = false;
     }
 
 
