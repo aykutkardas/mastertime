@@ -53,23 +53,49 @@ namespace Option {
     }
 }
 
-
 class MasterTime {
 
     activeGroupIndex: number | boolean;
-    storage: HTMLSelect.Timer[][];
-    getRegex: Function;
+    storage:    HTMLSelect.Timer[][];
+    
+    getRegex:   Function;
+    getScheme:  Function;
+
+    getStorage: Function;
+    setStorage: Function;
+
+    getActiveGroupIndex: Function;
+    setActiveGroupIndex: Function;
+
 
     constructor() {
 
-        this.activeGroupIndex = false;
-        this.storage = [];
-        var _regexStorage: RegexStorage = {
+        var _storage: HTMLSelect.Timer[][] = [];
+        var _activeGroupIndex: number = -1;
+
+        const _regexStorage: RegexStorage = {
             fullDateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})\ ([\d]{2}\:[\d]{2}\:[\d]{2})/,
             dateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})/,
             timeRegex: /([\d]{2}\:[\d]{2}\:[\d]{2})/
         };
-        this.getRegex = ()=> _regexStorage;
+
+        const _scheme: HTMLSelect.Timer  = {
+            'mtDate': null,
+            'mtStart': null,
+            'mtEnd': null,
+            'mtOnStart': null,
+            'mtOnInterval': null,
+            'mtOnEnd': null,
+            'mtName': null,
+            'mtTemplate': null,
+            'mtWay': null,
+            'mtAgo': null,
+            'mtTarget': null
+        }
+        this.getRegex   = () => _regexStorage;
+        this.getScheme  = () => _scheme;
+        this.getStorage = () => _storage;
+        this.setStorage = (groupIndex) => {_storage[groupIndex] = []};
     }
 
     dateCompletion(inputDate: string): string | boolean {
@@ -141,7 +167,7 @@ class MasterTime {
         
     }
 
-    msToCustom(ms: number, option: string): TimeObj | boolean {
+    msToCustom(ms: number, option?: string): TimeObj | boolean {
 
         if(!ms)
             return false;
@@ -288,7 +314,7 @@ class MasterTime {
     
     }
 
-    templateApply(template: string, timeObj: TimeObj, option: Option.Format): string | boolean {
+    templateApply(template: string, timeObj: TimeObj, option?: Option.Format): string | boolean {
 
         if(!template)
             return false;
@@ -345,51 +371,27 @@ class MasterTime {
     
     }
 
-
     htmlSelect(el: HTMLElement): HTMLSelect.Format | boolean {
-        if(typeof el !== 'object')
+        if(!el || !el.tagName)
             return false;
     
-        const htmlObj: HTMLSelect.Raw = {
-            'mtDate': null,
-            'mtStart': null,
-            'mtEnd': null,
-            'mtOnStart': null,
-            'mtOnInterval': null,
-            'mtOnEnd': null,
-            'mtName': null,
-            'mtTemplate': null,
-            'mtWay': null,
-            'mtAgo': null,
-            'mtTarget': null
-        };
-    
-        let i: string;
-    
-        for(i in htmlObj)
-            htmlObj[i] = el.getAttribute(i);
-    
+        const htmlObj: HTMLSelect.Raw = (<any>Object).assign({}, this.getScheme());
+        let attrName: string;
+
+        for(attrName in htmlObj) {
+            htmlObj[attrName] = el.getAttribute(attrName);
+            el.removeAttribute(attrName);
+        }
+
         htmlObj.mtTarget = el;
-        
+
         return this.htmlSelectFormatter(htmlObj);
     }
 
 
     htmlSelectFormatter(htmlObj: HTMLSelect.Raw): HTMLSelect.Format {
     
-        const output: HTMLSelect.Format = {
-            'mtDate': null,
-            'mtStart': null,
-            'mtEnd': null,
-            'mtOnStart': null,
-            'mtOnInterval': null,
-            'mtOnEnd': null,
-            'mtName': null,
-            'mtTemplate': null,
-            'mtWay': null,
-            'mtAgo': null,
-            'mtTarget': null
-        };
+        const output: HTMLSelect.Format = (<any>Object).assign({}, this.getScheme());
     
         output.mtDate      = htmlObj.mtDate;
         output.mtName      = htmlObj.mtName;
@@ -417,34 +419,9 @@ class MasterTime {
       return output;
     }
 
-    htmlRemoveAttr(el: HTMLElement): boolean {
+    mtWayCalc(timer: HTMLSelect.Timer): HTMLSelect.Timer | boolean {
 
-        if(!el)
-            return false;
-
-        const attrList: string[] = [
-            'mtDate',
-            'mtStart',
-            'mtEnd',
-            'mtOnStart',
-            'mtOnInterval',
-            'mtOnEnd',
-            'mtName',
-            'mtTemplate',
-            'mtWay',
-            'mtAgo'
-        ];
-
-        let i: string;
-
-        for(i in attrList)
-            el.removeAttribute(attrList[i]);
-
-        return true;
-    }
-
-    craft(timer: HTMLSelect.Timer): HTMLSelect.Timer | boolean {
-        if(!timer)
+        if(!timer || typeof timer !== 'object')
             return false;
 
         if(timer.mtStart) {
@@ -488,28 +465,32 @@ class MasterTime {
 
 
     addTimer(timer: HTMLSelect.Timer | HTMLSelect.Timer[]): number | boolean {
-
         if(!timer)
             return false;
 
         let groupIndex = this.storage.length;
 
-        if(!this.storage[groupIndex])
-            this.storage[groupIndex] = [];
+        // if(!this.storage[groupIndex])
+            // this.storage[groupIndex] = [];
         
         if(Array.isArray(timer)) {
             let i: number = 0;
             let len: number = timer.length;
             for(; i < len; i++){
-                let craftTimer = this.craft(timer[i]);
+                let timeObj: HTMLSelect.Format = (<any>Object).assign({}, this.getScheme(), timer[i]);
+                let craftTimer = this.mtWayCalc(timeObj);
                 if(craftTimer && typeof craftTimer !== 'boolean')
                     this.storage[groupIndex].push(craftTimer);
+                console.log(craftTimer)
             }
         } else {
-            let craftTimer = this.craft(timer);
+            let timeObj: HTMLSelect.Format = (<any>Object).assign({}, this.getScheme(), timer);
+            let craftTimer = this.mtWayCalc(timeObj);
             if(craftTimer && typeof craftTimer !== 'boolean')
-                this.storage[groupIndex].push(timer);
+                this.storage[groupIndex].push(craftTimer);
+            console.log(craftTimer)
         }
+
         return groupIndex;
     }
 
@@ -521,11 +502,6 @@ class MasterTime {
         if(timeObj.mtStart === timeObj.mtEnd)
             return false;
 
-        if(timeObj.mtWay === 'up')
-            timeObj.mtStart++;
-        else
-            timeObj.mtStart--;
-
         let custom = this.msToCustom(timeObj.mtStart * 1000, 'h:m:s');
         if(
             custom && 
@@ -533,11 +509,17 @@ class MasterTime {
             timeObj.mtTarget && 
             timeObj.mtTarget.tagName
          ){
-             let result = this.templateApply('{h}:{m}:{s}', custom,  {leftPad: true});
-             if(result && typeof result === 'string')
-                timeObj.mtTarget.innerHTML = result;
+             let result = this.templateApply('{h}:{m}:{s}', custom);
+             if(result && typeof result === 'string'){
+                 timeObj.mtTarget.innerHTML = result;
+                // @ts-ignore
+                timeObj.mtTarget.value = result;
+             }
         }
-
+        if(timeObj.mtWay === 'up')
+            timeObj.mtStart++;
+        else
+            timeObj.mtStart--;
     }
 
     build(selector: string) {
@@ -552,23 +534,40 @@ class MasterTime {
         for(; j < nodeLen; j++)
             elems.push(nodeList[j]);
 
-
+        
         let i: number = 0;
         let len: number = elems.length;
         let timeObj:HTMLSelect.Timer[] = [];
-
+        
         for(; i < len; i++) {
             var obj = this.htmlSelect(elems[i]);
+            
             if(obj && typeof obj === 'object')
                 timeObj.push(obj);
         }
+        
 
         this.activeGroupIndex = this.addTimer(timeObj);
         return this;        
     }
 
     add(obj) {
-        this.activeGroupIndex = this.addTimer(obj)
+        if(!obj)
+            return false;
+
+        let elems;
+
+        elems = document.querySelectorAll(obj.mtTarget);
+        let i: number = 0;
+        let len: number = elems.length;
+
+        let timeObjList = [];
+        for(; i < len; i++){
+            obj.target = elems[i]
+            timeObjList.push(obj);
+        }
+
+        this.activeGroupIndex = this.addTimer(timeObjList)
         return this;
     }
 
@@ -584,6 +583,7 @@ class MasterTime {
         for(; i < len; i++) {
             let index = i;
             activeObj = timeObjList[index];
+            this.machine(groupIndex, index);
             setInterval(
                 ()=>{this.machine(groupIndex, index)},
                 1000

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="../dist/index.js"></script>
+    <script src="../lib/mastertime.dev.1.2.0.js"></script>
+</head>
+<body>
+    <input 
+        class="timer1"
+        mt-name="test" 
+        mt-time="35890"
+        mt-way="up"
+        value="Mastertime-Dev 1.2.0" />
+
+    <input 
+        class="timer2" 
+        mtName="test" 
+        mtStart="35890"
+        mtWay="up"
+        value="Mastertime-Dev 2.0.0" />
+
+    <input 
+        class="timer3" 
+        value="Mastertime-Dev 2.0.0" />
+
+
+    <script>
+        var MT2 = new MasterTime;
+
+        console.time('Mastertime-Dev 1.2.0');
+        MT.build('.timer1');
+        console.timeEnd('Mastertime-Dev 1.2.0');
+
+        console.time('Mastertime-Dev 2.0.0');
+        MT2.build('.timer2').run();
+        console.timeEnd('Mastertime-Dev 2.0.0');
+
+        console.time('Mastertime-Dev 2.0.0 with Add');
+        MT2.add({
+            mtTarget: '.timer3',
+            mtName: 'test',
+            mtStart: 35890,
+            mtWay: 'up'
+        }).run();
+        console.timeEnd('Mastertime-Dev 2.0.0 with Add');
+
+
+
+            
+    </script>
+</body>
+</html>
