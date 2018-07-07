@@ -5,52 +5,44 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="../dist/index.js"></script>
+    <script src="../dist/mastertime.js"></script>
     <script src="../lib/mastertime.dev.1.2.0.js"></script>
 </head>
 <body>
-    <input 
+    <div 
         class="timer1"
-        mt-name="test" 
-        mt-time="35890"
-        mt-way="up"
-        value="Mastertime-Dev 1.2.0" />
-
-    <input 
-        class="timer2" 
-        mtName="test" 
-        mtStart="35890"
-        mtWay="up"
-        value="Mastertime-Dev 2.0.0" />
-
-    <input 
-        class="timer3" 
-        value="Mastertime-Dev 2.0.0" />
-
-
+        mt-time="5">
+    </div>
+    <div 
+        class="timer2"
+        mtStart="5">
+    </div>
+    <div 
+        class="timer3">
+        [{h}: ][{m}: ]{s}
+    </div>
     <script>
-        var MT2 = new MasterTime;
+        var MT2 = new Mastertime;
 
         console.time('Mastertime-Dev 1.2.0');
         MT.build('.timer1');
         console.timeEnd('Mastertime-Dev 1.2.0');
 
         console.time('Mastertime-Dev 2.0.0');
-        MT2.build('.timer2').run();
+        MT2.build('.timer2', { leftPad: false }).run();
         console.timeEnd('Mastertime-Dev 2.0.0');
 
         console.time('Mastertime-Dev 2.0.0 with Add');
         MT2.add({
-            mtTarget: '.timer3',
-            mtName: 'test',
-            mtStart: 35890,
-            mtWay: 'up'
+            target: '.timer3',
+            start: 5,
+            end: 0,
+            config: {
+                leftPad: true,
+                timeFormat: 'h:m:s'
+            }
         }).run();
         console.timeEnd('Mastertime-Dev 2.0.0 with Add');
-
-
-
-            
     </script>
 </body>
 </html>

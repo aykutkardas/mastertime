@@ -8,11 +8,49 @@
     <script src="../dist/mastertime.js"></script>
 </head>
 <body>
-    <div></div>
-    <div></div>
-    <div></div>
+    <div class="timer" mtStart="5000" mtTemplate="{h}:{m}:{s}"></div>
+    <div id="timer2"></div>
+    <div id="timer">
+        <div>
+            <i>{Y}</i>
+            <b>Yıl</b>
+        </div>
+        <div>
+            <i>{M}</i>
+            <b>Ay</b>
+        </div>
+        <div>
+            <i>{W}</i>
+            <b>Hafta</b>
+        </div>
+        <div>
+            <i>{D}</i>
+            <b>Gün</b>
+        </div>
+        <div>
+            <i>{h}</i>
+            <b>Saat</b>
+        </div>
+        <div>
+            <i>{m}</i>
+            <b>Dakika</b>
+        </div>
+        <div>
+            <i>{s}</i>
+            <b>Saniye</b>
+        </div>
+    </div>
     <script>
-        var MT = new Mastertime;
+        var MT = new Mastertime();
+        MT.add({
+            date: '10.09.1992',
+            target: '#timer',
+            config: {
+                leftPad: false,
+                timeFormat: 'Y:M:W:D:h:m:s'
+            }
+        }).run();
+
     </script>
 </body>
 </html>
