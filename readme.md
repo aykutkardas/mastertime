@@ -16,7 +16,7 @@
     <script>
         var MT = new Mastertime;
         MT2.add({
-            target: '.timer3',
+            target: '.timer',
             start: 5,
             end: 0,
             config: {
