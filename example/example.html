@@ -8,8 +8,6 @@
     <script src="../dist/mastertime.js"></script>
 </head>
 <body>
-    <div class="timer" mtStart="5000" mtTemplate="{h}:{m}:{s}"></div>
-    <div id="timer2"></div>
     <div id="timer">
         <div>
             <i>{Y}</i>
@@ -35,21 +33,37 @@
             <i>{m}</i>
             <b>Dakika</b>
         </div>
-        <div>
+        [<div>
             <i>{s}</i>
             <b>Saniye</b>
-        </div>
+        </div>]
+    </div>
+
+    <div class="timer2">
+        {h}:{m}:{s}
     </div>
     <script>
         var MT = new Mastertime();
-        MT.add({
-            date: '10.09.1992',
-            target: '#timer',
-            config: {
-                leftPad: false,
-                timeFormat: 'Y:M:W:D:h:m:s'
+        MT.add(
+            [
+            {
+                date: '10.09.1992',
+                target: '#timer',
+                onStart: (e)=>{console.log(e.target)},
+                config: {
+                    leftPad: false,
+                    timeFormat: 'Y:M:W:D:h:m:s'
+                }
+            },
+            {
+                start: 500,
+                target: '.timer2',
+                onStart: event => {console.log('start', event.start)},
+                onInterval: event => {console.log('interval', event.start)},
+                onEnd: event => {console.log('end', event.start)}
             }
-        }).run();
+            ]
+        ).run();
 
     </script>
 </body>

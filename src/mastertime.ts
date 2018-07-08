@@ -1,8 +1,5 @@
 namespace Storage {
-  // export interface Storage {
-  //   [index: number]: Storage.TimerObj[];
-  // }
-
+  
   export interface Event {
     onStart?: Function;
     onInterval?: Function;
@@ -36,9 +33,9 @@ namespace Storage {
     date?: string;
     start?: number;
     end?: number;
-    onStart?: Function | string;
-    onInterval?: Function | string;
-    onEnd?: Function | string;
+    onStart?: Function;
+    onInterval?: Function;
+    onEnd?: Function;
     name?: string;
     template?: string;
     way?: string;
@@ -180,7 +177,7 @@ class Mastertime {
     this._dateFormat = (date: string): string => {
       if (!this._getRegex("fullDateRegex").exec(date)) return date;
 
-      const month: string[] = [
+      const months: string[] = [
         "January",
         "February",
         "March",
@@ -195,15 +192,11 @@ class Mastertime {
         "December"
       ];
 
-      let dateArr: string[],
-        explodeDate: string[] = date.split(" "),
-        activeMonth: string;
-      if (!explodeDate[1]) explodeDate[1] = "";
+      let [ dateStr, timeStr]: string[] = date.split(' ');
+      let [ day, month, year ] = dateStr.split('.');
+      month = months[Number(month) -1];
 
-      dateArr = explodeDate[0].split(".");
-      activeMonth = month[Number(dateArr[1]) - 1];
-
-      return `${activeMonth} ${dateArr[0]}, ${dateArr[2]} ${explodeDate[1]}`;
+      return `${month} ${day}, ${year} ${timeStr}`;
     };
 
     this._dateDiff = (date: string): number => {
@@ -226,20 +219,16 @@ class Mastertime {
       if (!template) template = "{h}:{m}:{s}";
 
       // passive
-      const bracket: string =
-        "\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])";
       const bracketPass: string =
-        "\\/\\[(\\[[^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])\\]";
+        "\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])";
       const bracketInner: string =
         "[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[]*)[^\\/]\\]";
 
       if (option && option.leftPad) timeObj = this._leftPad(timeObj, option);
 
       let i: string,
-        bracketRegex: RegExp,
         bracketPassRegex: RegExp,
         bracketInnerRegex: RegExp,
-        bracketRegexMatch: RegExpExecArray,
         bracketPassRegexMatch: RegExpExecArray,
         bracketInnerRegexMatch: RegExpExecArray;
 
@@ -254,25 +243,13 @@ class Mastertime {
           continue;
         }
 
-        bracketRegex = new RegExp(bracket.replace(".", i), "gmi");
-        bracketRegexMatch = bracketRegex.exec(template);
-        if (bracketRegexMatch) {
-          template = template.replace(bracketRegex, `$1${timeObj[i]}$3$4`);
-          continue;
-        }
-
         bracketPassRegex = new RegExp(bracketPass.replace(".", i), "gmi");
         bracketPassRegexMatch = bracketPassRegex.exec(template);
         if (bracketPassRegexMatch) {
-          if (!parseInt(timeObj[i]))
-            template = template.replace(bracketPassRegex, "");
-          else
-            template = template.replace(
-              bracketPassRegex,
-              `$1${timeObj[i]}$3$4`
-            );
+          template = template.replace(bracketPassRegex, `$1${timeObj[i]}$3$4`);
           continue;
         }
+
 
         template = template.replace("{" + i + "}", timeObj[i]);
       }
@@ -335,10 +312,7 @@ class Mastertime {
 
       obj.config = (<any>Object).assign(defaultConfig, obj.config);
 
-      if (obj.onInterval) {
-        //@ts-ignore
-        obj.onInterval(obj);
-      }
+      if (obj.onInterval) obj.onInterval(obj);
 
       if (obj.target) {
         let content: string = this._templateApply(
@@ -353,12 +327,10 @@ class Mastertime {
       }
       if (obj.way === "up") obj.start++;
       else obj.start--;
+
       if (obj.start === obj.end - 1) {
         clearInterval(obj.process);
-        if (obj.onEnd) {
-          //@ts-ignore
-          obj.onEnd(obj);
-        }
+        if (obj.onEnd) obj.onEnd(obj);
         return false;
       }
     };
@@ -387,13 +359,10 @@ class Mastertime {
         let elemLen: number = elems.length;
 
         for (; j < elemLen; j++) {
+          let activeElement = <HTMLElement>elems[j];
           let uniqueObj = (<any>Object).assign({}, activeObj);
-          uniqueObj.target = elems[j];
-          uniqueObj.onStart = (function(uniqueObj) {
-            uniqueObj.onStart(uniqueObj);
-          })(uniqueObj);
-          // @ts-ignore
-          uniqueObj.template = uniqueObj.template || elems[j].innerHTML;
+          uniqueObj.target = activeElement;
+          uniqueObj.template = uniqueObj.template || activeElement.innerHTML;
 
           this._putTimeBaseRoom(roomIndex, uniqueObj);
         }
@@ -483,10 +452,8 @@ class Mastertime {
 
     for (; i < len; i++) {
       let activeObj: Storage.TimerObj = timerObjList[i];
-      if (activeObj.onStart) {
-        //@ts-ignore
-        activeObj.onStart(activeObj);
-      }
+      if (activeObj.onStart) activeObj.onStart(activeObj);
+
       this._machine(activeObj);
       activeObj.process = setInterval(() => {
         this._machine(activeObj);
