@@ -50,9 +50,8 @@ var Mastertime = /** @class */ (function () {
                 }
             }
             else if (obj.date) {
-                var diff = _this._dateDiff(obj.date) < 0
-                    ? -_this._dateDiff(obj.date)
-                    : _this._dateDiff(obj.date);
+                var diff = _this._dateDiff(obj.date);
+                diff = (diff < 0) ? -diff : diff;
                 if (_this._dateDiff(obj.date) < 0)
                     obj.way = "up";
                 else
@@ -70,10 +69,10 @@ var Mastertime = /** @class */ (function () {
                 selectedOption = ["Y", "M", "W", "D", "h", "m", "s"];
             else
                 selectedOption = option.leftPad.split(":");
-            var i, newObj = {};
-            for (i in obj) {
-                if (selectedOption.indexOf(i) > -1)
-                    newObj[i] = parseInt(obj[i]) < 10 ? "0" + obj[i] : obj[i];
+            var timeType, newObj = {};
+            for (timeType in obj) {
+                if (selectedOption.indexOf(timeType) > -1)
+                    newObj[timeType] = parseInt(obj[timeType]) < 10 ? "0" + obj[timeType] : obj[timeType];
             }
             Object.assign(obj, newObj);
             return obj;
@@ -153,16 +152,14 @@ var Mastertime = /** @class */ (function () {
             second = parseInt(second.toString());
             if (isNaN(second))
                 second = 0;
-            var ms = second * 1000;
-            var oneYearMs = 31556926000, oneMonthMs = 2629743830, oneWeekMs = 604800000, oneDayMs = 86400000, oneHourMs = 3600000, oneMinuteMs = 60000, oneSecondMs = 1000;
             var ruler = {
-                Y: oneYearMs,
-                M: oneMonthMs,
-                W: oneWeekMs,
-                D: oneDayMs,
-                h: oneHourMs,
-                m: oneMinuteMs,
-                s: oneSecondMs
+                Y: 31556926,
+                M: 2629743.83,
+                W: 604800,
+                D: 86400,
+                h: 3600,
+                m: 60,
+                s: 1
             };
             var selectedFormat;
             if (!option)
@@ -173,8 +170,8 @@ var Mastertime = /** @class */ (function () {
             var output = {};
             for (i in ruler) {
                 if (selectedFormat.indexOf(i) > -1) {
-                    output[i] = Math.floor(ms / ruler[i]).toString();
-                    ms %= ruler[i];
+                    output[i] = Math.floor(second / ruler[i]).toString();
+                    second %= ruler[i];
                 }
             }
             return output;

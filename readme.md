@@ -5,8 +5,8 @@ It allows you to create timers by writing very few JavaScript code.
 ## How to Use
 ----
 #### Import Library
-````js
-<script src="your/path/to/mastertime-2.0.0.js"></script>
+````html
+<script src="your/path/to/mastertime-min.js"></script>
 ````
 ### start
 ````html

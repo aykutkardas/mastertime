@@ -28,7 +28,7 @@ namespace Storage {
     ago?: string;
   }
 
-  export interface TimerObj {
+  export interface Timer {
     date?: string;
     start?: number;
     end?: number;
@@ -70,7 +70,7 @@ class Mastertime {
 
   constructor() {
     let _lastRoomIndex = -1;
-    const _storage: Storage.TimerObj[][] = [];
+    const _storage: Storage.Timer[][] = [];
     const _regexStorage: RegexStorage = {
       fullDateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})\ ([\d]{2}\:[\d]{2}\:[\d]{2})/,
       dateRegex: /([\d]{2}\.[\d]{2}\.[\d]{4})/,
@@ -80,7 +80,7 @@ class Mastertime {
     this._getRegex = (key?: string): RegexStorage | RegExp =>
       key ? _regexStorage[key] : _regexStorage;
 
-    this._getTimeBase = (): Storage.TimerObj[][] => _storage;
+    this._getTimeBase = (): Storage.Timer[][] => _storage;
 
     this._createTimeBaseRoom = (): number => {
       let index = _storage.length;
@@ -88,7 +88,7 @@ class Mastertime {
       return index;
     };
 
-    this._putTimeBaseRoom = (index: number, obj: Storage.TimerObj): void => {
+    this._putTimeBaseRoom = (index: number, obj: Storage.Timer): void => {
       _storage[index].push(obj);
     };
 
@@ -103,162 +103,190 @@ class Mastertime {
     };
 
     this._firstLetterToLowerCase = (str: string): string => {
-      return (str = str[0].toLowerCase() + str.slice(1, 12));
+      return (str = str[0].toLowerCase() + str.slice(1, str.length));
     };
 
-    this._wayDetector = (obj: Storage.TimerObj): Storage.TimerObj => {
-      if (typeof obj.start === "string" && !isNaN(parseInt(obj.start)))
-        obj.start = parseInt(obj.start);
+    this._wayDetector = (obj: Storage.Timer): Storage.Timer => {
 
-      if (typeof obj.end === "string" && !isNaN(parseInt(obj.end)))
-        obj.end = parseInt(obj.end);
+        if (typeof obj.start === "string" && !isNaN(parseInt(obj.start)))
+            obj.start = parseInt(obj.start);
 
-      if (typeof obj.start === "number") {
-        if (typeof obj.end === "number") {
-          if (obj.start > obj.end) obj.way = "down";
-          else obj.way = "up";
-        } else {
-          if (!obj.way) {
-            obj.end = obj.start > 0 ? 0 : Infinity;
-            obj.way = obj.start > 0 ? "down" : "up";
-          }
+        if (typeof obj.end === "string" && !isNaN(parseInt(obj.end)))
+            obj.end = parseInt(obj.end);
+
+        if (typeof obj.start === "number") {
+
+            if (typeof obj.end === "number") {
+                if (obj.start > obj.end)
+                    obj.way = "down";
+                else
+                    obj.way = "up";
+            } else {
+                if (!obj.way) {
+                    obj.end = obj.start > 0 ? 0 : Infinity;
+                    obj.way = obj.start > 0 ? "down" : "up";
+                }
+            }
+            
+        } else if (obj.date) {
+
+            let diff = this._dateDiff(obj.date);
+            diff =  (diff < 0) ? -diff : diff;
+
+            if (this._dateDiff(obj.date) < 0) 
+                obj.way = "up";
+            else
+                obj.way = "down";
+
+            delete obj.date;
+            obj.start = Math.floor(diff);
         }
-      } else if (obj.date) {
-        let diff =
-          this._dateDiff(obj.date) < 0
-            ? -this._dateDiff(obj.date)
-            : this._dateDiff(obj.date);
-        if (this._dateDiff(obj.date) < 0) obj.way = "up";
-        else obj.way = "down";
 
-        delete obj.date;
-        obj.start = Math.floor(diff);
-      }
-
-      return obj;
+        return obj;
     };
 
-    this._leftPad = (obj: Storage.TimerObj, option?): Storage.TimerObj => {
-      if (!option || !option.leftPad) return obj;
-      let selectedOption: string[];
-      if (option.leftPad === true)
-        selectedOption = ["Y", "M", "W", "D", "h", "m", "s"];
-      else selectedOption = option.leftPad.split(":");
+    this._leftPad = (obj: Storage.Timer, option?): Storage.Timer => {
 
-      let i: string,
-        newObj: Storage.TimerObj = {};
+        if (!option || !option.leftPad)
+            return obj;
 
-      for (i in obj) {
-        if (selectedOption.indexOf(i) > -1)
-          newObj[i] = parseInt(obj[i]) < 10 ? "0" + obj[i] : obj[i];
-      }
+        let selectedOption: string[];
 
-      (<any>Object).assign(obj, newObj);
-      return obj;
+        if (option.leftPad === true)
+            selectedOption = ["Y", "M", "W", "D", "h", "m", "s"];
+        else
+            selectedOption = option.leftPad.split(":");
+
+        let timeType: string,
+            newObj: Storage.Timer = {};
+
+        for (timeType in obj) {
+            if (selectedOption.indexOf(timeType) > -1)
+                newObj[timeType] = parseInt(obj[timeType]) < 10 ? "0" + obj[timeType] : obj[timeType];
+        }
+
+        (<any>Object).assign(obj, newObj);
+
+        return obj;
+        
     };
 
     this._dateComplete = (date: string): string => {
-      let fullDateRegexResult: RegExpExecArray = this._getRegex(
-        "fullDateRegex"
-      ).exec(date);
-      if (fullDateRegexResult) return fullDateRegexResult[0];
 
-      let dateRegexResult: RegExpExecArray = this._getRegex("dateRegex").exec(
-        date
-      );
-      if (dateRegexResult) return dateRegexResult[0] + " 00:00:00";
+        
+        let fullDateRegex: RegExpExecArray;
+        fullDateRegex = this._getRegex('fullDateRegex').exec(date);
+        
+        if (fullDateRegex)
+            return fullDateRegex[0];
+        
+        let dateRegex: RegExpExecArray;
+        dateRegex = this._getRegex('dateRegex').exec(date);
+        
+        if(dateRegex)
+            return dateRegex[0] + ' 00:00:00';
+        
+        let timeRegex: RegExpExecArray;
+        timeRegex = this._getRegex('timeRegex').exec(date);
+        
+        if(timeRegex)
+            return new Date().toLocaleDateString() + ' ' + timeRegex[0];
 
-      let timeRegexResult: RegExpExecArray = this._getRegex("timeRegex").exec(
-        date
-      );
-      if (timeRegexResult)
-        return new Date().toLocaleDateString() + " " + timeRegexResult[0];
+        return new Date().toLocaleString();
 
-      return new Date().toLocaleString();
     };
 
     this._dateFormat = (date: string): string => {
-      if (!this._getRegex("fullDateRegex").exec(date)) return date;
 
-      const months: string[] = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ];
+        if (!this._getRegex("fullDateRegex").exec(date)) 
+            return date;
 
-      let [dateStr, timeStr]: string[] = date.split(" ");
-      let [day, month, year] = dateStr.split(".");
-      month = months[Number(month) - 1];
+        const months: string[] = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+        ];
 
-      return `${month} ${day}, ${year} ${timeStr}`;
+        let [dateStr, timeStr]: string[] = date.split(" ");
+        let [day, month, year] = dateStr.split(".");
+
+        month = months[Number(month) - 1];
+
+        return `${month} ${day}, ${year} ${timeStr}`;
     };
 
     this._dateDiff = (date: string): number => {
-      let dateMs: number, nowDateMs: number;
 
-      if (!date) return 0;
+        if (!date)
+            return 0;
 
-      date = this._dateFormat(this._dateComplete(date));
-      dateMs = new Date(date).getTime();
-      nowDateMs = new Date().getTime();
+        let dateMs: number, 
+            nowDateMs: number;
 
-      return (dateMs - nowDateMs) / 1000;
+        date = this._dateFormat(this._dateComplete(date));
+
+        dateMs = new Date(date).getTime();
+        nowDateMs = new Date().getTime();
+
+        return (dateMs - nowDateMs) / 1000;
+
     };
 
-    this._templateApply = (
-      template: string,
-      timeObj: Storage.TimerObj,
-      option?
-    ): string => {
-      if (
-        (typeof template === "string" && template.trim().length < 1) || !template
-      )
-        template = "{h}:{m}:{s}";
+    this._templateApply = (template: string, timeObj: Storage.Timer, option?): string => {
 
-      const bracketPass: string =
-        "\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])";
-      const bracketInner: string =
-        "[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[]*)[^\\/]\\]";
+        const defaultTemplate = '{h}:{m}:{s}';
 
-      if (option && option.leftPad) timeObj = this._leftPad(timeObj, option);
+        if('string' === typeof(template) && template.trim().length < 1)
+            template = defaultTemplate;
+        else if (!template)
+            template = defaultTemplate;
 
-      let i: string,
-        bracketPassRegex: RegExp,
-        bracketInnerRegex: RegExp,
-        bracketPassRegexMatch: RegExpExecArray,
-        bracketInnerRegexMatch: RegExpExecArray;
+        const bracketInner: string = '\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])';
+        const bracketPass: string  = '[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[]*)[^\\/]\\]';
 
-      for (i in timeObj) {
-        bracketInnerRegex = new RegExp(bracketInner.replace(".", i), "gmi");
-        bracketInnerRegexMatch = bracketInnerRegex.exec(template);
-        if (bracketInnerRegexMatch) {
-          if (!parseInt(timeObj[i]))
-            template = template.replace(bracketInnerRegex, "");
-          else
-            template = template.replace(bracketInnerRegex, `$1${timeObj[i]}$3`);
-          continue;
+        if(option && option.leftPad)
+            timeObj = this._leftPad(timeObj, option);
+
+        let timeType: string;
+        let bracketPassRegex:  RegExp;
+        let bracketInnerRegex: RegExp;
+        let bracketInnerRegexMatch: RegExpExecArray;
+        let bracketPassRegexMatch:  RegExpExecArray;
+
+        for(timeType in timeObj) {
+            bracketInnerRegex = new RegExp(bracketInner.replace('.', timeType), 'gmi');
+            bracketInnerRegexMatch = bracketInnerRegex.exec(template);
+            if(bracketInnerRegexMatch) {
+                if(parseInt(timeObj[timeType]) === 0)
+                    template = template.replace(bracketInnerRegex, '');
+                else
+                    template = template.replace(bracketInnerRegex, `$1${timeObj[timeType]}$3`);
+                
+                continue;
+            }
+
+            bracketPassRegex = new RegExp(bracketPass.replace('.', timeType), 'gmi');
+            bracketPassRegexMatch = bracketPassRegex.exec(template);
+
+            if(bracketPassRegexMatch) {
+                template = template.replace(bracketPassRegex, `$1${timeObj[i]}$3$4`);
+                continue;
+            }
+
+            template = template.replace("{" + i + "}", timeObj[timeType]);
         }
 
-        bracketPassRegex = new RegExp(bracketPass.replace(".", i), "gmi");
-        bracketPassRegexMatch = bracketPassRegex.exec(template);
-        if (bracketPassRegexMatch) {
-          template = template.replace(bracketPassRegex, `$1${timeObj[i]}$3$4`);
-          continue;
-        }
+        return template;
 
-        template = template.replace("{" + i + "}", timeObj[i]);
-      }
-
-      return template;
     };
 
     this._timeFormat = (
@@ -268,24 +296,14 @@ class Mastertime {
       second = parseInt(second.toString());
       if (isNaN(second)) second = 0;
 
-      let ms: number = second * 1000;
-
-      const oneYearMs: number = 31556926000,
-        oneMonthMs: number = 2629743830,
-        oneWeekMs: number = 604800000,
-        oneDayMs: number = 86400000,
-        oneHourMs: number = 3600000,
-        oneMinuteMs: number = 60000,
-        oneSecondMs: number = 1000;
-
-      const ruler: Storage.TimerObj = {
-        Y: oneYearMs,
-        M: oneMonthMs,
-        W: oneWeekMs,
-        D: oneDayMs,
-        h: oneHourMs,
-        m: oneMinuteMs,
-        s: oneSecondMs
+      const ruler: Storage.Timer = {
+        Y: 31556926,
+        M: 2629743.83,
+        W: 604800,
+        D: 86400,
+        h: 3600,
+        m: 60,
+        s: 1
       };
 
       let selectedFormat: string[];
@@ -297,14 +315,14 @@ class Mastertime {
 
       for (i in ruler) {
         if (selectedFormat.indexOf(i) > -1) {
-          output[i] = Math.floor(ms / ruler[i]).toString();
-          ms %= ruler[i];
+          output[i] = Math.floor(second / ruler[i]).toString();
+          second %= ruler[i];
         }
       }
       return output;
     };
 
-    this._machine = (obj: Storage.TimerObj) => {
+    this._machine = (obj: Storage.Timer) => {
       if (typeof obj.start !== "number" && !obj.date)
         clearInterval(obj.process);
 
@@ -348,11 +366,11 @@ class Mastertime {
     };
   }
 
-  add(obj: Storage.TimerObj | Storage.TimerObj[]): Mastertime {
+  add(obj: Storage.Timer | Storage.Timer[]): Mastertime {
     if (!obj) return this;
 
     let roomIndex: number = this._createTimeBaseRoom();
-    let objs: Storage.TimerObj;
+    let objs: Storage.Timer;
 
     if (!Array.isArray(obj)) objs = [obj];
     else objs = obj;
@@ -440,7 +458,7 @@ class Mastertime {
       if (rawObj.onEnd && typeof rawObj.onEnd === "string")
         eventObj.onEnd = new Function("event", rawObj.onEnd);
 
-      let timerObj: Storage.TimerObj = (<any>Object).assign(
+      let timerObj: Storage.Timer = (<any>Object).assign(
         {},
         this._wayDetector(rawObj),
         eventObj,
@@ -461,12 +479,12 @@ class Mastertime {
     let roomIndex: number = this._getLastRoomIndex();
     if (roomIndex === -1) return false;
 
-    let timerObjList: Storage.TimerObj[] = this._getTimeBase()[roomIndex];
+    let timerObjList: Storage.Timer[] = this._getTimeBase()[roomIndex];
     let i: number = 0;
     let len: number = timerObjList.length;
 
     for (; i < len; i++) {
-      let activeObj: Storage.TimerObj = timerObjList[i];
+      let activeObj: Storage.Timer = timerObjList[i];
       if (activeObj.onStart) activeObj.onStart(activeObj);
 
       this._machine(activeObj);
@@ -488,7 +506,7 @@ class Mastertime {
       if (_storage[i] && Array.isArray(_storage[i]) && _storage[i].length) {
         let j: number = 0;
         let roomSize: number = _storage[i].length;
-        let activeObj: Storage.TimerObj = _storage[i];
+        let activeObj: Storage.Timer = _storage[i];
         for (; j < roomSize; j++) {
           if (
             activeObj[j].hasOwnProperty("name") &&
