@@ -28,11 +28,13 @@ var Mastertime = /** @class */ (function () {
             _lastRoomIndex = -1;
         };
         this._firstLetterToLowerCase = function (str) {
-            var strArr = str.split("");
-            strArr[0] = strArr[0].toLowerCase();
-            return strArr.join("");
+            return (str = str[0].toLowerCase() + str.slice(1, 12));
         };
         this._wayDetector = function (obj) {
+            if (typeof obj.start === "string" && !isNaN(parseInt(obj.start)))
+                obj.start = parseInt(obj.start);
+            if (typeof obj.end === "string" && !isNaN(parseInt(obj.end)))
+                obj.end = parseInt(obj.end);
             if (typeof obj.start === "number") {
                 if (typeof obj.end === "number") {
                     if (obj.start > obj.end)
@@ -105,17 +107,10 @@ var Mastertime = /** @class */ (function () {
                 "November",
                 "December"
             ];
-            var _a = date.split(' '), dateStr = _a[0], timeStr = _a[1];
-            var _b = dateStr.split('.'), day = _b[0], month = _b[1], year = _b[2];
+            var _a = date.split(" "), dateStr = _a[0], timeStr = _a[1];
+            var _b = dateStr.split("."), day = _b[0], month = _b[1], year = _b[2];
             month = months[Number(month) - 1];
             return month + " " + day + ", " + year + " " + timeStr;
-            // let dateArr: string[],
-            // explodeDate: string[] = date.split(" "),
-            // activeMonth: string;
-            // if (!explodeDate[1]) explodeDate[1] = "";
-            // dateArr = explodeDate[0].split(".");
-            // activeMonth = months[Number(dateArr[1]) - 1];
-            // return `${activeMonth} ${dateArr[0]}, ${dateArr[2]} ${explodeDate[1]}`;
         };
         this._dateDiff = function (date) {
             var dateMs, nowDateMs;
@@ -127,9 +122,8 @@ var Mastertime = /** @class */ (function () {
             return (dateMs - nowDateMs) / 1000;
         };
         this._templateApply = function (template, timeObj, option) {
-            if (!template)
+            if ((typeof template === "string" && template.trim().length < 1) || !template)
                 template = "{h}:{m}:{s}";
-            // passive
             var bracketPass = "\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])";
             var bracketInner = "[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[]*)[^\\/]\\]";
             if (option && option.leftPad)
@@ -179,7 +173,7 @@ var Mastertime = /** @class */ (function () {
             var output = {};
             for (i in ruler) {
                 if (selectedFormat.indexOf(i) > -1) {
-                    output[i] = Math.floor(ms / ruler[i]);
+                    output[i] = Math.floor(ms / ruler[i]).toString();
                     ms %= ruler[i];
                 }
             }
@@ -196,21 +190,31 @@ var Mastertime = /** @class */ (function () {
             if (obj.onInterval)
                 obj.onInterval(obj);
             if (obj.target) {
+                if (!obj.template) {
+                    obj.template = obj.target.innerHTML;
+                }
                 var content = _this._templateApply(obj.template, _this._timeFormat(obj.start, obj.config), obj.config);
-                var prevContent = obj.target.innerHTML;
-                if (prevContent !== content)
-                    obj.target.innerHTML = content;
+                if (obj.target.tagName === "INPUT") {
+                    var prevContent = obj.target.value;
+                    if (prevContent !== content)
+                        obj.target.value = content;
+                }
+                else {
+                    var prevContent = obj.target.innerHTML;
+                    if (prevContent !== content)
+                        obj.target.innerHTML = content;
+                }
             }
-            if (obj.way === "up")
-                obj.start++;
-            else
-                obj.start--;
-            if (obj.start === obj.end - 1) {
+            if (obj.start === obj.end) {
                 clearInterval(obj.process);
                 if (obj.onEnd)
                     obj.onEnd(obj);
                 return false;
             }
+            if (obj.way === "up")
+                obj.start++;
+            else
+                obj.start--;
         };
     }
     Mastertime.prototype.add = function (obj) {
@@ -290,7 +294,10 @@ var Mastertime = /** @class */ (function () {
                 eventObj.onInterval = new Function("event", rawObj.onInterval);
             if (rawObj.onEnd && typeof rawObj.onEnd === "string")
                 eventObj.onEnd = new Function("event", rawObj.onEnd);
-            var timerObj = Object.assign({}, this._wayDetector(rawObj), eventObj, { target: activeElement, config: option });
+            var timerObj = Object.assign({}, this._wayDetector(rawObj), eventObj, {
+                target: activeElement,
+                config: option
+            });
             this._putTimeBaseRoom(roomIndex, timerObj);
         }
         this._setLastRoomIndex(roomIndex);
@@ -318,6 +325,26 @@ var Mastertime = /** @class */ (function () {
             _loop_1();
         }
         this._resetLastRoomIndex();
+    };
+    Mastertime.prototype.destroy = function (name) {
+        if (!name || typeof name !== "string")
+            return false;
+        var _storage = this._getTimeBase();
+        var i = 0;
+        var len = _storage.length;
+        for (; i < len; i++) {
+            if (_storage[i] && Array.isArray(_storage[i]) && _storage[i].length) {
+                var j = 0;
+                var roomSize = _storage[i].length;
+                var activeObj = _storage[i];
+                for (; j < roomSize; j++) {
+                    if (activeObj[j].hasOwnProperty("name") &&
+                        name === activeObj[j].name) {
+                        clearInterval(activeObj[j].process);
+                    }
+                }
+            }
+        }
     };
     return Mastertime;
 }());

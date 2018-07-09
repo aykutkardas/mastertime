@@ -1,5 +1,4 @@
 namespace Storage {
-  
   export interface Event {
     onStart?: Function;
     onInterval?: Function;
@@ -7,13 +6,13 @@ namespace Storage {
   }
 
   export interface Format {
-    Y?: number | string;
-    M?: number | string;
-    W?: number | string;
-    D?: number | string;
-    h?: number | string;
-    m?: number | string;
-    s?: number | string;
+    Y?: string;
+    M?: string;
+    W?: string;
+    D?: string;
+    h?: string;
+    m?: string;
+    s?: string;
   }
 
   export interface Build {
@@ -81,7 +80,7 @@ class Mastertime {
     this._getRegex = (key?: string): RegexStorage | RegExp =>
       key ? _regexStorage[key] : _regexStorage;
 
-    this._getTimeBase = () => _storage;
+    this._getTimeBase = (): Storage.TimerObj[][] => _storage;
 
     this._createTimeBaseRoom = (): number => {
       let index = _storage.length;
@@ -104,12 +103,16 @@ class Mastertime {
     };
 
     this._firstLetterToLowerCase = (str: string): string => {
-      let strArr = str.split("");
-      strArr[0] = strArr[0].toLowerCase();
-      return strArr.join("");
+      return (str = str[0].toLowerCase() + str.slice(1, 12));
     };
 
     this._wayDetector = (obj: Storage.TimerObj): Storage.TimerObj => {
+      if (typeof obj.start === "string" && !isNaN(parseInt(obj.start)))
+        obj.start = parseInt(obj.start);
+
+      if (typeof obj.end === "string" && !isNaN(parseInt(obj.end)))
+        obj.end = parseInt(obj.end);
+
       if (typeof obj.start === "number") {
         if (typeof obj.end === "number") {
           if (obj.start > obj.end) obj.way = "down";
@@ -192,9 +195,9 @@ class Mastertime {
         "December"
       ];
 
-      let [ dateStr, timeStr]: string[] = date.split(' ');
-      let [ day, month, year ] = dateStr.split('.');
-      month = months[Number(month) -1];
+      let [dateStr, timeStr]: string[] = date.split(" ");
+      let [day, month, year] = dateStr.split(".");
+      month = months[Number(month) - 1];
 
       return `${month} ${day}, ${year} ${timeStr}`;
     };
@@ -216,9 +219,11 @@ class Mastertime {
       timeObj: Storage.TimerObj,
       option?
     ): string => {
-      if (!template) template = "{h}:{m}:{s}";
+      if (
+        (typeof template === "string" && template.trim().length < 1) || !template
+      )
+        template = "{h}:{m}:{s}";
 
-      // passive
       const bracketPass: string =
         "\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])";
       const bracketInner: string =
@@ -249,7 +254,6 @@ class Mastertime {
           template = template.replace(bracketPassRegex, `$1${timeObj[i]}$3$4`);
           continue;
         }
-
 
         template = template.replace("{" + i + "}", timeObj[i]);
       }
@@ -293,11 +297,10 @@ class Mastertime {
 
       for (i in ruler) {
         if (selectedFormat.indexOf(i) > -1) {
-          output[i] = Math.floor(ms / ruler[i]);
+          output[i] = Math.floor(ms / ruler[i]).toString();
           ms %= ruler[i];
         }
       }
-
       return output;
     };
 
@@ -315,24 +318,33 @@ class Mastertime {
       if (obj.onInterval) obj.onInterval(obj);
 
       if (obj.target) {
+        if(!obj.template) {
+          obj.template = (<HTMLElement>obj.target).innerHTML;
+        }
         let content: string = this._templateApply(
           obj.template,
           this._timeFormat(obj.start, obj.config),
           obj.config
         );
-
-        let prevContent: string = (<HTMLElement>obj.target).innerHTML;
-        if (prevContent !== content)
-          (<HTMLElement>obj.target).innerHTML = content;
+        if ((<HTMLInputElement>obj.target).tagName === "INPUT") {
+          let prevContent: string = (<HTMLInputElement>obj.target).value;
+          if (prevContent !== content)
+            (<HTMLInputElement>obj.target).value = content;
+        } else {
+          let prevContent: string = (<HTMLElement>obj.target).innerHTML;
+          if (prevContent !== content)
+            (<HTMLElement>obj.target).innerHTML = content;
+        }
       }
-      if (obj.way === "up") obj.start++;
-      else obj.start--;
-
-      if (obj.start === obj.end - 1) {
+      
+      if (obj.start === obj.end) {
         clearInterval(obj.process);
         if (obj.onEnd) obj.onEnd(obj);
         return false;
       }
+
+      if (obj.way === "up") obj.start++;
+      else obj.start--;
     };
   }
 
@@ -432,7 +444,10 @@ class Mastertime {
         {},
         this._wayDetector(rawObj),
         eventObj,
-        { target: activeElement, config: option }
+        {
+          target: activeElement,
+          config: option
+        }
       );
 
       this._putTimeBaseRoom(roomIndex, timerObj);
@@ -461,5 +476,28 @@ class Mastertime {
     }
 
     this._resetLastRoomIndex();
+  }
+
+  destroy(name: string): boolean {
+    if (!name || typeof name !== "string") return false;
+
+    const _storage = this._getTimeBase();
+    let i: number = 0;
+    let len: number = _storage.length;
+    for (; i < len; i++) {
+      if (_storage[i] && Array.isArray(_storage[i]) && _storage[i].length) {
+        let j: number = 0;
+        let roomSize: number = _storage[i].length;
+        let activeObj: Storage.TimerObj = _storage[i];
+        for (; j < roomSize; j++) {
+          if (
+            activeObj[j].hasOwnProperty("name") &&
+            name === activeObj[j].name
+          ) {
+            clearInterval(activeObj[j].process);
+          }
+        }
+      }
+    }
   }
 }

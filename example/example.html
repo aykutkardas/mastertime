@@ -6,65 +6,27 @@
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="../dist/mastertime.js"></script>
+    <style>
+        div {
+            font-family: Arial;
+            font-size: 16pt;
+            text-align: center;
+            padding: 50px;
+        }
+    </style>
 </head>
 <body>
-    <div id="timer">
-        <div>
-            <i>{Y}</i>
-            <b>Yıl</b>
-        </div>
-        <div>
-            <i>{M}</i>
-            <b>Ay</b>
-        </div>
-        <div>
-            <i>{W}</i>
-            <b>Hafta</b>
-        </div>
-        <div>
-            <i>{D}</i>
-            <b>Gün</b>
-        </div>
-        <div>
-            <i>{h}</i>
-            <b>Saat</b>
-        </div>
-        <div>
-            <i>{m}</i>
-            <b>Dakika</b>
-        </div>
-        [<div>
-            <i>{s}</i>
-            <b>Saniye</b>
-        </div>]
-    </div>
-
-    <div class="timer2">
-        {h}:{m}:{s}
-    </div>
-    <script>
-        var MT = new Mastertime();
-        MT.add(
-            [
-            {
-                date: '10.09.1992',
-                target: '#timer',
-                onStart: (e)=>{console.log(e.target)},
-                config: {
-                    leftPad: false,
-                    timeFormat: 'Y:M:W:D:h:m:s'
-                }
-            },
-            {
-                start: 500,
-                target: '.timer2',
-                onStart: event => {console.log('start', event.start)},
-                onInterval: event => {console.log('interval', event.start)},
-                onEnd: event => {console.log('end', event.start)}
-            }
-            ]
-        ).run();
-
-    </script>
+        <div 
+            class="timer" 
+            mtStart="5" 
+            mtEnd="0"
+            mtOnInterval="if(event.start <= 3) event.target.style.color = 'red'"
+            mtTemplate="{h}:{m}:{s}"
+            ></div>
+        <script>
+            var MT = new Mastertime;
+        
+            MT.build('.timer').run();
+        </script>
 </body>
 </html>
