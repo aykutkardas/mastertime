@@ -289,37 +289,45 @@ class Mastertime {
 
     };
 
-    this._timeFormat = (
-      second: number | string,
-      option?
-    ): Storage.Format | boolean => {
-      second = parseInt(second.toString());
-      if (isNaN(second)) second = 0;
+    this._timeFormat = (second: number, option?): Storage.Format => {
+    
+        if('number' !== typeof(second))
+            second = parseInt(second);
+        
+        if(isNaN(second))
+            second = 0;
+        
 
-      const ruler: Storage.Timer = {
-        Y: 31556926,
-        M: 2629743.83,
-        W: 604800,
-        D: 86400,
-        h: 3600,
-        m: 60,
-        s: 1
-      };
+        const ruler: Storage.Timer = {
+            Y: 31556926,
+            M: 2629743.83,
+            W: 604800,
+            D: 86400,
+            h: 3600,
+            m: 60,
+            s: 1
+        };
 
-      let selectedFormat: string[];
-      if (!option) selectedFormat = ["Y", "M", "W", "D", "h", "m", "s"];
-      else selectedFormat = option.timeFormat.split(":");
+        let selectedFormat: string[];
 
-      let i: string;
-      let output: Storage.Format = {};
+        if(!option)
+            selectedFormat = ['Y', 'M', 'W', 'D', 'h', 'm', 's'];
+        else
+            selectedFormat = option.timeFormat.split(':');
 
-      for (i in ruler) {
-        if (selectedFormat.indexOf(i) > -1) {
-          output[i] = Math.floor(second / ruler[i]).toString();
-          second %= ruler[i];
+
+        let timeType: string;
+        let timerObj: Storage.Format = {};
+
+        for(timeType in ruler) {
+            if(selectedFormat.indexOf(timeType) > -1) {
+                timerObj[timeType] = Math.floor(second / ruler[timeType]).toString();
+                second %= ruler[timeType];
+            }
         }
-      }
-      return output;
+
+        return timerObj;
+        
     };
 
     this._machine = (obj: Storage.Timer) => {
