@@ -278,11 +278,11 @@ class Mastertime {
             bracketPassRegexMatch = bracketPassRegex.exec(template);
 
             if(bracketPassRegexMatch) {
-                template = template.replace(bracketPassRegex, `$1${timeObj[i]}$3$4`);
+                template = template.replace(bracketPassRegex, `$1${timeObj[timeType]}$3$4`);
                 continue;
             }
 
-            template = template.replace("{" + i + "}", timeObj[timeType]);
+            template = template.replace("{" + timeType + "}", timeObj[timeType]);
         }
 
         return template;

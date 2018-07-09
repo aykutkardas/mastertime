@@ -28,7 +28,7 @@ var Mastertime = /** @class */ (function () {
             _lastRoomIndex = -1;
         };
         this._firstLetterToLowerCase = function (str) {
-            return (str = str[0].toLowerCase() + str.slice(1, 12));
+            return (str = str[0].toLowerCase() + str.slice(1, str.length));
         };
         this._wayDetector = function (obj) {
             if (typeof obj.start === "string" && !isNaN(parseInt(obj.start)))
@@ -78,15 +78,18 @@ var Mastertime = /** @class */ (function () {
             return obj;
         };
         this._dateComplete = function (date) {
-            var fullDateRegexResult = _this._getRegex("fullDateRegex").exec(date);
-            if (fullDateRegexResult)
-                return fullDateRegexResult[0];
-            var dateRegexResult = _this._getRegex("dateRegex").exec(date);
-            if (dateRegexResult)
-                return dateRegexResult[0] + " 00:00:00";
-            var timeRegexResult = _this._getRegex("timeRegex").exec(date);
-            if (timeRegexResult)
-                return new Date().toLocaleDateString() + " " + timeRegexResult[0];
+            var fullDateRegex;
+            fullDateRegex = _this._getRegex('fullDateRegex').exec(date);
+            if (fullDateRegex)
+                return fullDateRegex[0];
+            var dateRegex;
+            dateRegex = _this._getRegex('dateRegex').exec(date);
+            if (dateRegex)
+                return dateRegex[0] + ' 00:00:00';
+            var timeRegex;
+            timeRegex = _this._getRegex('timeRegex').exec(date);
+            if (timeRegex)
+                return new Date().toLocaleDateString() + ' ' + timeRegex[0];
             return new Date().toLocaleString();
         };
         this._dateFormat = function (date) {
@@ -112,39 +115,46 @@ var Mastertime = /** @class */ (function () {
             return month + " " + day + ", " + year + " " + timeStr;
         };
         this._dateDiff = function (date) {
-            var dateMs, nowDateMs;
             if (!date)
                 return 0;
+            var dateMs, nowDateMs;
             date = _this._dateFormat(_this._dateComplete(date));
             dateMs = new Date(date).getTime();
             nowDateMs = new Date().getTime();
             return (dateMs - nowDateMs) / 1000;
         };
         this._templateApply = function (template, timeObj, option) {
-            if ((typeof template === "string" && template.trim().length < 1) || !template)
-                template = "{h}:{m}:{s}";
-            var bracketPass = "\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])";
-            var bracketInner = "[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[]*)[^\\/]\\]";
+            var defaultTemplate = '{h}:{m}:{s}';
+            if ('string' === typeof (template) && template.trim().length < 1)
+                template = defaultTemplate;
+            else if (!template)
+                template = defaultTemplate;
+            var bracketInner = '\\/(\\[[^\\!&^\\[&^\\]]*)\\{(.)\\}([^\\[&^\\]]*)\\/(\\])';
+            var bracketPass = '[^\\/&^\\[]{0}\\[([^\\&^\\[&^\\]]*)\\{(.)\\}([^\\[]*)[^\\/]\\]';
             if (option && option.leftPad)
                 timeObj = _this._leftPad(timeObj, option);
-            var i, bracketPassRegex, bracketInnerRegex, bracketPassRegexMatch, bracketInnerRegexMatch;
-            for (i in timeObj) {
-                bracketInnerRegex = new RegExp(bracketInner.replace(".", i), "gmi");
+            var timeType;
+            var bracketPassRegex;
+            var bracketInnerRegex;
+            var bracketInnerRegexMatch;
+            var bracketPassRegexMatch;
+            for (timeType in timeObj) {
+                bracketInnerRegex = new RegExp(bracketInner.replace('.', timeType), 'gmi');
                 bracketInnerRegexMatch = bracketInnerRegex.exec(template);
                 if (bracketInnerRegexMatch) {
-                    if (!parseInt(timeObj[i]))
-                        template = template.replace(bracketInnerRegex, "");
+                    if (parseInt(timeObj[timeType]) === 0)
+                        template = template.replace(bracketInnerRegex, '');
                     else
-                        template = template.replace(bracketInnerRegex, "$1" + timeObj[i] + "$3");
+                        template = template.replace(bracketInnerRegex, "$1" + timeObj[timeType] + "$3");
                     continue;
                 }
-                bracketPassRegex = new RegExp(bracketPass.replace(".", i), "gmi");
+                bracketPassRegex = new RegExp(bracketPass.replace('.', timeType), 'gmi');
                 bracketPassRegexMatch = bracketPassRegex.exec(template);
                 if (bracketPassRegexMatch) {
-                    template = template.replace(bracketPassRegex, "$1" + timeObj[i] + "$3$4");
+                    template = template.replace(bracketPassRegex, "$1" + timeObj[timeType] + "$3$4");
                     continue;
                 }
-                template = template.replace("{" + i + "}", timeObj[i]);
+                template = template.replace("{" + timeType + "}", timeObj[timeType]);
             }
             return template;
         };
