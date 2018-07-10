@@ -1,4 +1,5 @@
 namespace Storage {
+
   export interface Event {
     onStart?: Function;
     onInterval?: Function;
@@ -118,16 +119,16 @@ class Mastertime {
 
         this._wayDetector = (obj: Storage.Timer): Storage.Timer => {
 
-            if ('string' === typeof(obj.start) && !isNaN(parseInt(obj.start)))
+            if('string' === typeof(obj.start) && !isNaN(parseInt(obj.start)))
                 obj.start = parseInt(obj.start);
 
-            if ('string' === typeof(obj.end) && !isNaN(parseInt(obj.end)))
+            if('string' === typeof(obj.end) && !isNaN(parseInt(obj.end)))
                 obj.end = parseInt(obj.end);
 
-            if ((<any>Number).isInteger(obj.start)) {
+            if('number' === typeof(obj.start)) {
 
-                if ((<any>Number).isInteger(obj.end)) {
-                    if (obj.start > obj.end)
+                if('number' === typeof(obj.end)) {
+                    if(obj.start > obj.end)
                         obj.way = 'down';
                     else
                         obj.way = 'up';
@@ -162,16 +163,16 @@ class Mastertime {
             let selectedOption: string[];
 
             if (option.leftPad === true)
-                selectedOption = ["Y", "M", "W", "D", "h", "m", "s"];
+                selectedOption = ['Y', 'M', 'W', 'D', 'h', 'm', 's'];
             else
-                selectedOption = option.leftPad.split(":");
+                selectedOption = option.leftPad.split(':');
 
             let timeType: string,
                 newObj: Storage.Timer = {};
 
             for (timeType in obj) {
                 if (selectedOption.indexOf(timeType) > -1)
-                    newObj[timeType] = parseInt(obj[timeType]) < 10 ? "0" + obj[timeType] : obj[timeType];
+                    newObj[timeType] = parseInt(obj[timeType]) < 10 ? '0' + obj[timeType] : obj[timeType];
             }
 
             (<any>Object).assign(obj, newObj);
@@ -207,26 +208,26 @@ class Mastertime {
 
         this._dateFormat = (date: string): string => {
 
-            if (!this._getRegex("fullDateRegex").exec(date)) 
+            if(!this._getRegex('fullDateRegex').exec(date)) 
                 return date;
 
             const months: string[] = [
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December"
+                'January',
+                'February',
+                'March',
+                'April',
+                'May',
+                'June',
+                'July',
+                'August',
+                'September',
+                'October',
+                'November',
+                'December'
             ];
 
-            let [dateStr, timeStr]: string[] = date.split(" ");
-            let [day, month, year] = dateStr.split(".");
+            let [dateStr, timeStr]: string[] = date.split(' ');
+            let [day, month, year] = dateStr.split('.');
 
             month = months[Number(month) - 1];
 
@@ -235,7 +236,7 @@ class Mastertime {
 
         this._dateDiff = (date: string): number => {
 
-            if (!date)
+            if(!date)
                 return 0;
 
             let dateMs: number, 
@@ -291,7 +292,7 @@ class Mastertime {
                     continue;
                 }
 
-                template = template.replace("{" + timeType + "}", timeObj[timeType]);
+                template = template.replace('{' + timeType + '}', timeObj[timeType]);
             }
 
             return template;
@@ -344,7 +345,7 @@ class Mastertime {
             if('number' !== typeof(obj.start))
                 clearInterval(obj.process);
 
-            if (typeof obj.start !== "number" && !obj.date)
+            if(typeof obj.start !== 'number' && !obj.date)
                 clearInterval(obj.process);
 
             let config: Storage.Config = {
@@ -354,17 +355,16 @@ class Mastertime {
 
             obj.config = (<any>Object).assign({}, config, obj.config);
 
-            if (obj.onInterval)
+            if(obj.onInterval)
                 obj.onInterval(obj);
 
 
             if(obj.target) {
 
                 let target:HTMLElement = (<HTMLElement>obj.target);
-                if(!obj.template) {
-                    //@ts-ignore
-                    obj.template = target.tagName === 'INPUT' ? target.value : target.innerHTML;
-                }
+
+                if(!obj.template)
+                    obj.template = (target.tagName === 'INPUT') ? (<HTMLInputElement>target).value : target.innerHTML;
 
                 let content: string = this._templateApply(
                     obj.template,
@@ -473,16 +473,16 @@ class Mastertime {
         let roomIndex: number = this._createTimeBaseRoom();
 
         const attrList = [
-            "mtDate",
-            "mtStart",
-            "mtEnd",
-            "mtOnStart",
-            "mtOnInterval",
-            "mtOnEnd",
-            "mtName",
-            "mtTemplate",
-            "mtWay",
-            "mtAgo"
+            'mtDate',
+            'mtStart',
+            'mtEnd',
+            'mtOnStart',
+            'mtOnInterval',
+            'mtOnEnd',
+            'mtName',
+            'mtTemplate',
+            'mtWay',
+            'mtAgo'
         ];
 
         let i: number = 0;
