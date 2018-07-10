@@ -27,25 +27,26 @@ var Mastertime = /** @class */ (function () {
         this._resetLastRoomIndex = function () {
             _lastRoomIndex = -1;
         };
-        this._firstLetterToLowerCase = function (str) {
+        this._attrToProp = function (str) {
+            str = str.substr(2, str.length);
             return (str = str[0].toLowerCase() + str.slice(1, str.length));
         };
         this._wayDetector = function (obj) {
-            if (typeof obj.start === "string" && !isNaN(parseInt(obj.start)))
+            if ('string' === typeof (obj.start) && !isNaN(parseInt(obj.start)))
                 obj.start = parseInt(obj.start);
-            if (typeof obj.end === "string" && !isNaN(parseInt(obj.end)))
+            if ('string' === typeof (obj.end) && !isNaN(parseInt(obj.end)))
                 obj.end = parseInt(obj.end);
-            if (typeof obj.start === "number") {
-                if (typeof obj.end === "number") {
+            if (Number.isInteger(obj.start)) {
+                if (Number.isInteger(obj.end)) {
                     if (obj.start > obj.end)
-                        obj.way = "down";
+                        obj.way = 'down';
                     else
-                        obj.way = "up";
+                        obj.way = 'up';
                 }
                 else {
                     if (!obj.way) {
                         obj.end = obj.start > 0 ? 0 : Infinity;
-                        obj.way = obj.start > 0 ? "down" : "up";
+                        obj.way = obj.start > 0 ? 'down' : 'up';
                     }
                 }
             }
@@ -53,10 +54,9 @@ var Mastertime = /** @class */ (function () {
                 var diff = _this._dateDiff(obj.date);
                 diff = (diff < 0) ? -diff : diff;
                 if (_this._dateDiff(obj.date) < 0)
-                    obj.way = "up";
+                    obj.way = 'up';
                 else
-                    obj.way = "down";
-                delete obj.date;
+                    obj.way = 'down';
                 obj.start = Math.floor(diff);
             }
             return obj;
@@ -159,7 +159,8 @@ var Mastertime = /** @class */ (function () {
             return template;
         };
         this._timeFormat = function (second, option) {
-            second = parseInt(second.toString());
+            if ('number' !== typeof (second))
+                second = parseInt(second);
             if (isNaN(second))
                 second = 0;
             var ruler = {
@@ -173,96 +174,108 @@ var Mastertime = /** @class */ (function () {
             };
             var selectedFormat;
             if (!option)
-                selectedFormat = ["Y", "M", "W", "D", "h", "m", "s"];
+                selectedFormat = ['Y', 'M', 'W', 'D', 'h', 'm', 's'];
             else
-                selectedFormat = option.timeFormat.split(":");
-            var i;
-            var output = {};
-            for (i in ruler) {
-                if (selectedFormat.indexOf(i) > -1) {
-                    output[i] = Math.floor(second / ruler[i]).toString();
-                    second %= ruler[i];
+                selectedFormat = option.timeFormat.split(':');
+            var timeType;
+            var timerObj = {};
+            for (timeType in ruler) {
+                if (selectedFormat.indexOf(timeType) > -1) {
+                    timerObj[timeType] = Math.floor(second / ruler[timeType]).toString();
+                    second %= ruler[timeType];
                 }
             }
-            return output;
+            return timerObj;
         };
         this._machine = function (obj) {
+            if ('number' !== typeof (obj.start))
+                clearInterval(obj.process);
             if (typeof obj.start !== "number" && !obj.date)
                 clearInterval(obj.process);
-            var defaultConfig = {
-                timeFormat: "h:m:s",
-                leftPad: "h:m:s"
+            var config = {
+                timeFormat: obj.date ? 'Y:M:W:D:h:m:s' : 'h:m:s',
+                leftPad: obj.date ? 'h:m:s' : false
             };
-            obj.config = Object.assign(defaultConfig, obj.config);
+            obj.config = Object.assign({}, config, obj.config);
             if (obj.onInterval)
                 obj.onInterval(obj);
             if (obj.target) {
+                var target = obj.target;
                 if (!obj.template) {
-                    obj.template = obj.target.innerHTML;
+                    //@ts-ignore
+                    obj.template = target.tagName === 'INPUT' ? target.value : target.innerHTML;
                 }
                 var content = _this._templateApply(obj.template, _this._timeFormat(obj.start, obj.config), obj.config);
-                if (obj.target.tagName === "INPUT") {
-                    var prevContent = obj.target.value;
-                    if (prevContent !== content)
-                        obj.target.value = content;
+                if (target.tagName === 'INPUT') {
+                    //@ts-ignore
+                    if (target.value !== content)
+                        target.value = content;
                 }
                 else {
-                    var prevContent = obj.target.innerHTML;
-                    if (prevContent !== content)
-                        obj.target.innerHTML = content;
+                    if (target.innerHTML !== content)
+                        target.innerHTML = content;
                 }
             }
             if (obj.start === obj.end) {
                 clearInterval(obj.process);
                 if (obj.onEnd)
                     obj.onEnd(obj);
-                return false;
+                return true;
             }
-            if (obj.way === "up")
+            if (obj.way === 'up')
                 obj.start++;
             else
                 obj.start--;
         };
     }
-    Mastertime.prototype.add = function (obj) {
-        if (!obj)
+    Mastertime.prototype.add = function (timerObj) {
+        if (!timerObj)
             return this;
         var roomIndex = this._createTimeBaseRoom();
-        var objs;
-        if (!Array.isArray(obj))
-            objs = [obj];
+        var timerObjList;
+        if (!Array.isArray(timerObj))
+            timerObjList = [timerObj];
         else
-            objs = obj;
+            timerObjList = timerObj;
         var i = 0;
-        var len = objs.length;
+        var len = timerObjList.length;
         for (; i < len; i++) {
-            var activeObj = this._wayDetector(objs[i]);
+            var activeObj = this._wayDetector(timerObjList[i]);
             if (!activeObj.start && !activeObj.date)
                 continue;
             if (activeObj.target) {
-                var elems = document.querySelectorAll(objs[i].target);
+                var elements = document.querySelectorAll(activeObj.target);
                 var j = 0;
-                var elemLen = elems.length;
-                for (; j < elemLen; j++) {
-                    var activeElement = elems[j];
-                    var uniqueObj = Object.assign({}, activeObj);
-                    uniqueObj.target = activeElement;
-                    uniqueObj.template = uniqueObj.template || activeElement.innerHTML;
-                    this._putTimeBaseRoom(roomIndex, uniqueObj);
+                var elementSize = elements.length;
+                for (; j < elementSize; j++) {
+                    var activeElement = elements[j];
+                    var uniqueTimerObj = Object.assign({}, activeObj, {
+                        target: activeElement,
+                        template: activeObj.template
+                    });
+                    this._putTimeBaseRoom(roomIndex, uniqueTimerObj);
                 }
             }
             else {
                 this._putTimeBaseRoom(roomIndex, Object.assign({}, activeObj));
             }
+            this._setLastRoomIndex(roomIndex);
+            return this;
         }
-        this._setLastRoomIndex(roomIndex);
-        return this;
     };
-    Mastertime.prototype.build = function (selector, option) {
+    Mastertime.prototype.build = function (selector, config) {
         if (!selector)
             return this;
-        var elems = document.querySelectorAll(selector);
-        if (elems.length === 0)
+        var elements;
+        if ('string' === typeof (selector))
+            elements = document.querySelectorAll(selector);
+        else if (selector.tagName)
+            elements = [selector];
+        else if (selector.length)
+            elements = selector;
+        else
+            return this;
+        if (!elements.length)
             return this;
         var roomIndex = this._createTimeBaseRoom();
         var attrList = [
@@ -278,32 +291,32 @@ var Mastertime = /** @class */ (function () {
             "mtAgo"
         ];
         var i = 0;
-        var len = elems.length;
+        var len = elements.length;
         for (; i < len; i++) {
-            var activeElement = elems[i];
-            var rawObj = {};
+            var activeElement = elements[i];
+            var rawTimerObj = {};
             var j = 0;
             var attrListLen = attrList.length;
             for (; j < attrListLen; j++) {
-                var val = activeElement.getAttribute(attrList[j]);
-                if (val) {
+                var attrValue = activeElement.getAttribute(attrList[j]);
+                if (attrValue) {
                     activeElement.removeAttribute(attrList[j]);
-                    var key = this._firstLetterToLowerCase(attrList[j].substr(2, 10));
-                    rawObj[key] = val;
+                    var attrKey = this._attrToProp(attrList[j]);
+                    rawTimerObj[attrKey] = attrValue;
                 }
             }
-            if (!rawObj.start && !rawObj.date)
+            if (!rawTimerObj.start && !rawTimerObj.date)
                 continue;
-            var eventObj = {};
-            if (rawObj.onStart && typeof rawObj.onStart === "string")
-                eventObj.onStart = new Function("event", rawObj.onStart);
-            if (rawObj.onInterval && typeof rawObj.onInterval === "string")
-                eventObj.onInterval = new Function("event", rawObj.onInterval);
-            if (rawObj.onEnd && typeof rawObj.onEnd === "string")
-                eventObj.onEnd = new Function("event", rawObj.onEnd);
-            var timerObj = Object.assign({}, this._wayDetector(rawObj), eventObj, {
+            var events = {};
+            if (rawTimerObj.onStart && 'string' === typeof (rawTimerObj.onStart))
+                events.onStart = new Function('event', rawTimerObj.onStart);
+            if (rawTimerObj.onInterval && 'string' === typeof (rawTimerObj.onInterval))
+                events.onInterval = new Function('event', rawTimerObj.onInterval);
+            if (rawTimerObj.onEnd && 'string' === typeof (rawTimerObj.onEnd))
+                events.onEnd = new Function('event', rawTimerObj.onEnd);
+            var timerObj = Object.assign({}, this._wayDetector(rawTimerObj), events, {
                 target: activeElement,
-                config: option
+                config: config
             });
             this._putTimeBaseRoom(roomIndex, timerObj);
         }
@@ -323,9 +336,7 @@ var Mastertime = /** @class */ (function () {
             if (activeObj.onStart)
                 activeObj.onStart(activeObj);
             this_1._machine(activeObj);
-            activeObj.process = setInterval(function () {
-                _this._machine(activeObj);
-            }, 1000);
+            activeObj.process = setInterval(function () { return _this._machine(activeObj); }, 1000);
         };
         var this_1 = this;
         for (; i < len; i++) {
@@ -334,22 +345,23 @@ var Mastertime = /** @class */ (function () {
         this._resetLastRoomIndex();
     };
     Mastertime.prototype.destroy = function (name) {
-        if (!name || typeof name !== "string")
+        if (!name || 'string' !== typeof (name))
             return false;
         var _storage = this._getTimeBase();
+        if (!_storage || !Array.isArray(_storage) || !_storage.length)
+            return false;
         var i = 0;
         var len = _storage.length;
         for (; i < len; i++) {
-            if (_storage[i] && Array.isArray(_storage[i]) && _storage[i].length) {
-                var j = 0;
-                var roomSize = _storage[i].length;
-                var activeObj = _storage[i];
-                for (; j < roomSize; j++) {
-                    if (activeObj[j].hasOwnProperty("name") &&
-                        name === activeObj[j].name) {
-                        clearInterval(activeObj[j].process);
-                    }
-                }
+            var j = 0;
+            var roomSize = _storage[i].length;
+            var timerObjList = _storage[i];
+            if (!timerObjList || !roomSize)
+                continue;
+            for (; j < roomSize; j++) {
+                var activeObj = timerObjList[j];
+                if (activeObj.hasOwnProperty('name') && name === activeObj.name)
+                    clearInterval(activeObj.process);
             }
         }
     };
