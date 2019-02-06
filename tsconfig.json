@@ -1,8 +1,12 @@
 {
-  "files": ["src/*.ts"],
+  "include": ["src/*.ts"],
   "compilerOptions": {
+    "module": "commonjs",
     "noImplicitAny": false,
+    "removeComments": true,
     "target": "es5",
-    "typeRoots" : ["./typings"]
+    "lib": ["dom", "es6", "es2017"],
+    "typeRoots": ["./typings"],
+    "outDir": "dist/"
   }
 }
