@@ -209,7 +209,7 @@ mt-date="17.06.2015"
 mt-format="<i>{Y} year</i><i>{M} month</i><i>{D} day</i><i>{h} hour</i><i>{m} minute</i><i>{s} second ago</i>"></div>
 
 Output:
-<div class="date>
+<div class="date">
     <i>2 year</i>
     <i>1 month</i>
     <i>23 day</i>
